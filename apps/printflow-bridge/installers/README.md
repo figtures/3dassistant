@@ -5,7 +5,7 @@ Tek masaüstü uygulaması; **Chrome / Firefox / Edge için ayrı eklenti yok**.
 ## Güven
 
 - Kaynak: `apps/printflow-bridge` (bu repo, açık derleme).
-- CI: GitHub Actions `printflow-bridge-release.yml` — etiket `bridge-v*` ile imzalı artefaktlar.
+- CI: GitHub Actions `bridge-release.yml` — etiket `bridge-v*` (manifest + çoklu platform artefaktı). İmzalama: `docs/bridge-cdn-release.md`.
 - **macOS:** Apple Developer ile `codesign` + `notarytool` (pkg).
 - **Windows:** Authenticode (`.exe` / MSI); SmartScreen için EV sertifika önerilir.
 - **Linux:** `.deb` + SHA256 checksum; isteğe bağlı GPG imza.

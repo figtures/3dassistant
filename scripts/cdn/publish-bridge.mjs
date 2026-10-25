@@ -15,7 +15,6 @@
  */
 import {
   existsSync,
-  readdirSync,
   copyFileSync,
   mkdirSync,
   writeFileSync,
