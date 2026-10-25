@@ -1,0 +1,13 @@
+[Unit]
+Description=PrintFlow Bridge (LAN telemetri)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/printflow-bridge run
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

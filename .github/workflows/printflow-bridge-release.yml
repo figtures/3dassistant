@@ -1,0 +1,45 @@
+name: PrintFlow Bridge release
+
+on:
+  push:
+    tags:
+      - "bridge-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Sürüm (ör. 0.1.0)"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Test and build
+        working-directory: apps/printflow-bridge
+        env:
+          PRINTFLOW_BRIDGE_VERSION: ${{ github.event_name == 'workflow_dispatch' && format('bridge-v{0}', inputs.version) || github.ref_name }}
+        run: |
+          go test ./...
+          chmod +x installers/build-all.sh
+          ./installers/build-all.sh
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: printflow-bridge-binaries
+          path: apps/printflow-bridge/dist/*
+
+  # İmzalama adımları (Apple / Microsoft secrets) üretimde etkinleştirilir.
+  sign-note:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Üretim: macOS notarize + Windows signtool + .deb paketleme bu workflow'a secrets ile eklenir."

@@ -1,0 +1,23 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { AppShell } from "@/components/layout/app-shell";
+import { SupportDiagnosticsRoot } from "@/components/support/support-diagnostics-root";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  return (
+    <SupportDiagnosticsRoot>
+      <AppShell>{children}</AppShell>
+    </SupportDiagnosticsRoot>
+  );
+}
