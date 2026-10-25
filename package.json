@@ -38,6 +38,7 @@
     "db:migrate:pending": "node scripts/apply-pending-migrations.mjs",
     "tenant:provision": "node scripts/provision-tenant.mjs",
     "tenant:provision:sql": "node scripts/provision-tenant-sql.mjs",
+    "cdn:bridge:manifest": "node scripts/cdn/generate-manifest.mjs --write",
     "cdn:bridge:publish": "node scripts/cdn/publish-bridge.mjs"
   },
   "dependencies": {

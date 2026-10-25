@@ -19,7 +19,6 @@ import {
   copyFileSync,
   mkdirSync,
   writeFileSync,
-  readFileSync,
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";

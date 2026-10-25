@@ -1,0 +1,151 @@
+# Atölye köprüsü (printflow-bridge) — çoklu platform derleme + artefakt yükleme.
+# İmzalama: macOS/Windows secrets yapılandırılmadıysa CI yalnızca imzasız paket üretir;
+# üretimde imzalı yayın için docs/bridge-cdn-release.md runbook'unu izleyin.
+name: Bridge release (CDN)
+
+on:
+  push:
+    tags:
+      - "bridge-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Sürüm (ör. 0.1.0, bridge-v öneki olmadan)"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            ref="${GITHUB_REF_NAME}"
+            echo "version=${ref#bridge-v}" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-go:
+    needs: resolve-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: darwin
+            goarch: arm64
+            runner: macos-latest
+          - goos: darwin
+            goarch: amd64
+            runner: macos-latest
+          - goos: linux
+            goarch: amd64
+            runner: ubuntu-latest
+          - goos: windows
+            goarch: amd64
+            runner: windows-latest
+    runs-on: ${{ matrix.runner }}
+    env:
+      PRINTFLOW_BRIDGE_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Test
+        working-directory: apps/printflow-bridge
+        run: go test ./...
+      - name: Build binary
+        working-directory: apps/printflow-bridge
+        shell: bash
+        run: |
+          ext=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
+          out="dist/printflow-bridge_${PRINTFLOW_BRIDGE_VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}${ext}"
+          mkdir -p dist
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build -trimpath \
+            -ldflags "-s -w -X main.agentVersion=printflow-bridge/${PRINTFLOW_BRIDGE_VERSION}" \
+            -o "$out" .
+      - name: Package (native)
+        working-directory: apps/printflow-bridge
+        shell: bash
+        env:
+          SIGN_IDENTITY: ${{ secrets.APPLE_SIGN_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.goos }}" = "darwin" ]; then
+            chmod +x installers/macos/package.sh
+            ./installers/macos/package.sh "${{ matrix.goarch }}"
+          elif [ "${{ matrix.goos }}" = "linux" ]; then
+            chmod +x installers/linux/package-deb.sh
+            ./installers/linux/package-deb.sh
+          elif [ "${{ matrix.goos }}" = "windows" ]; then
+            choco install nsis -y || true
+            export PATH="/c/Program Files (x86)/NSIS:$PATH"
+            PRINTFLOW_BRIDGE_VERSION="$PRINTFLOW_BRIDGE_VERSION" makensis \
+              -DPRINTFLOW_BRIDGE_VERSION="$PRINTFLOW_BRIDGE_VERSION" \
+              installers/windows/printflow-bridge.nsi || true
+          fi
+      - name: macOS notarize (optional)
+        if: matrix.goos == 'darwin'
+        working-directory: apps/printflow-bridge
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          APPLE_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+          APPLE_NOTARY_KEY_P8: ${{ secrets.APPLE_NOTARY_KEY_P8 }}
+        run: |
+          if [ -z "${APPLE_NOTARY_KEY_ID:-}" ]; then
+            echo "APPLE_NOTARY_* secrets yok — notarize atlandı (imzasız veya yalnızca codesign)."
+            exit 0
+          fi
+          PKG="dist/printflow-bridge_${PRINTFLOW_BRIDGE_VERSION}_darwin_${{ matrix.goarch }}.pkg"
+          KEY_PATH="$RUNNER_TEMP/notary.p8"
+          printf '%s' "$APPLE_NOTARY_KEY_P8" > "$KEY_PATH"
+          xcrun notarytool store-credentials "ci-notary" \
+            --key "$KEY_PATH" --key-id "$APPLE_NOTARY_KEY_ID" --issuer "$APPLE_NOTARY_ISSUER_ID"
+          xcrun notarytool submit "$PKG" --keychain-profile "ci-notary" --wait
+          xcrun stapler staple "$PKG"
+      - name: Upload platform artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            apps/printflow-bridge/dist/printflow-bridge_${{ needs.resolve-version.outputs.version }}_*
+          if-no-files-found: warn
+
+  manifest:
+    needs: [resolve-version, build-go]
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Merge dist
+        run: |
+          mkdir -p apps/printflow-bridge/dist
+          find artifacts -type f -exec cp {} apps/printflow-bridge/dist/ \;
+          ls -la apps/printflow-bridge/dist
+      - name: Generate manifest
+        run: node scripts/cdn/generate-manifest.mjs --write
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: printflow-bridge-release-${{ needs.resolve-version.outputs.version }}
+          path: |
+            apps/printflow-bridge/dist/*
+      - name: Release note (signing)
+        run: |
+          echo "::notice::İmzalı macOS .pkg / Windows Authenticode için secrets: APPLE_SIGN_IDENTITY, APPLE_ID, APPLE_TEAM_ID, APPLE_NOTARY_* — bkz. docs/bridge-cdn-release.md"
+          echo "::notice::CDN yayın: artefaktları indirip npm run cdn:bridge:publish (BRIDGE_S3_BUCKET veya BRIDGE_CDN_DEST)."
