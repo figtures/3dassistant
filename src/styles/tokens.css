@@ -1,0 +1,254 @@
+/* Forge — primitives */
+:root {
+  --graphite-0: #ffffff;
+  --graphite-25: #fafaf9;
+  --graphite-50: #f4f4f3;
+  --graphite-100: #e8e8e6;
+  --graphite-200: #d6d6d3;
+  --graphite-300: #b4b4b0;
+  --graphite-400: #8e8e93;
+  --graphite-500: #6e6e76;
+  --graphite-600: #55555c;
+  --graphite-700: #3a3a40;
+  --graphite-800: #26262b;
+  --graphite-850: #1c1c20;
+  --graphite-900: #141416;
+  --graphite-925: #111113;
+  --graphite-950: #0b0b0c;
+
+  --nozzle-50: #fff4ec;
+  --nozzle-100: #ffe3cf;
+  --nozzle-200: #fcc39e;
+  --nozzle-300: #f6a36f;
+  --nozzle-400: #ef8a4e;
+  --nozzle-500: #e0702f;
+  --nozzle-600: #c2551a;
+  --nozzle-700: #9c4114;
+  --nozzle-800: #6e2e0f;
+  --nozzle-900: #3d1a09;
+
+  --steel-300: #9dbdbd;
+  --steel-400: #7aa3a3;
+  --steel-500: #5f8787;
+  --steel-600: #4a6c6c;
+  --steel-700: #375252;
+
+  --green-400: #4ad191;
+  --green-500: #2fb877;
+  --green-600: #1f8f5b;
+  --yellow-400: #f2cb55;
+  --yellow-500: #e3b324;
+  --yellow-600: #a87f0c;
+  --red-400: #f47272;
+  --red-500: #e5484d;
+  --red-600: #c22f36;
+  --blue-400: #6fa8e8;
+  --blue-500: #4a8bd6;
+  --blue-600: #2f6db5;
+  --violet-400: #a98bf0;
+  --violet-500: #8b6be0;
+}
+
+/* Semantic — dark (default) */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: var(--graphite-950);
+  --foreground: #ededef;
+
+  --surface-1: var(--graphite-925);
+  --surface-2: var(--graphite-900);
+  --surface-3: var(--graphite-850);
+  --surface-inset: #08080a;
+
+  --card: var(--surface-1);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface-2);
+  --popover-foreground: var(--foreground);
+
+  --text-secondary: #b4b4bb;
+  --muted: var(--graphite-850);
+  --muted-foreground: #9a9aa3;
+  --text-disabled: #6e6e76;
+
+  --border: var(--graphite-800);
+  --border-strong: var(--graphite-700);
+  --input: var(--graphite-700);
+
+  --primary: var(--nozzle-400);
+  --primary-hover: var(--nozzle-300);
+  --primary-foreground: #1a0d05;
+  --primary-subtle: color-mix(in oklab, var(--nozzle-400) 14%, transparent);
+
+  --secondary: var(--graphite-850);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--graphite-850);
+  --accent-foreground: var(--foreground);
+  --steel: var(--steel-400);
+
+  --success: var(--green-400);
+  --success-subtle: color-mix(in oklab, var(--green-400) 14%, transparent);
+  --warning: var(--yellow-400);
+  --warning-subtle: color-mix(in oklab, var(--yellow-400) 14%, transparent);
+  --destructive: var(--red-400);
+  --destructive-foreground: #1a0606;
+  --destructive-subtle: color-mix(in oklab, var(--red-400) 14%, transparent);
+  --info: var(--blue-400);
+  --info-subtle: color-mix(in oklab, var(--blue-400) 14%, transparent);
+
+  --ring: var(--nozzle-400);
+  --ring-offset: var(--background);
+
+  --state-printing: var(--nozzle-400);
+  --state-idle: var(--green-400);
+  --state-paused: var(--yellow-400);
+  --state-error: var(--red-400);
+  --state-offline: var(--graphite-500);
+  --state-maintenance: var(--violet-400);
+  --state-unknown: var(--graphite-600);
+
+  --sidebar: var(--graphite-950);
+  --sidebar-foreground: var(--text-secondary);
+  --sidebar-primary: var(--nozzle-400);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--graphite-850);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--graphite-800);
+  --sidebar-ring: var(--nozzle-400);
+
+  --chart-1: #ef8a4e;
+  --chart-2: #7aa3a3;
+  --chart-3: #6fa8e8;
+  --chart-4: #c9a2f0;
+  --chart-5: #e3c26a;
+  --chart-6: #5fc8a0;
+  --chart-grid: var(--graphite-800);
+  --chart-axis: var(--muted-foreground);
+
+  --elevation-0: 0 1px 0 0 rgb(255 255 255 / 0.03);
+  --elevation-1: 0 4px 12px -2px rgb(0 0 0 / 0.5),
+    0 0 0 1px rgb(255 255 255 / 0.04);
+  --elevation-2: 0 12px 32px -8px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(255 255 255 / 0.05);
+  --elevation-3: 0 24px 64px -12px rgb(0 0 0 / 0.7),
+    0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --background: var(--graphite-25);
+  --foreground: #18181b;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: var(--graphite-50);
+  --surface-inset: var(--graphite-50);
+  --card: var(--surface-1);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface-2);
+  --popover-foreground: var(--foreground);
+  --text-secondary: #3f3f46;
+  --muted: var(--graphite-50);
+  --muted-foreground: #57575f;
+  --text-disabled: #8e8e93;
+  --border: var(--graphite-100);
+  --border-strong: var(--graphite-200);
+  --input: var(--graphite-200);
+  --primary: var(--nozzle-600);
+  --primary-hover: var(--nozzle-700);
+  --primary-foreground: #ffffff;
+  --primary-subtle: color-mix(in oklab, var(--nozzle-600) 10%, transparent);
+  --secondary: var(--graphite-50);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--graphite-50);
+  --accent-foreground: var(--foreground);
+  --steel: var(--steel-600);
+  --success: var(--green-600);
+  --warning: var(--yellow-600);
+  --destructive: var(--red-600);
+  --destructive-foreground: #ffffff;
+  --info: var(--blue-600);
+  --ring: var(--nozzle-600);
+  --ring-offset: var(--background);
+  --state-printing: var(--nozzle-600);
+  --state-idle: var(--green-600);
+  --state-paused: var(--yellow-600);
+  --state-error: var(--red-600);
+  --state-offline: var(--graphite-400);
+  --state-maintenance: var(--violet-500);
+  --state-unknown: var(--graphite-300);
+  --sidebar: var(--graphite-50);
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: var(--nozzle-600);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffffff;
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--graphite-100);
+  --sidebar-ring: var(--nozzle-600);
+  --chart-1: #c2551a;
+  --chart-2: #4a6c6c;
+  --chart-3: #2f6db5;
+  --chart-4: #7d55c7;
+  --chart-5: #a87f0c;
+  --chart-6: #1f8f5b;
+  --chart-grid: var(--graphite-100);
+  --chart-axis: var(--muted-foreground);
+  --elevation-0: 0 1px 2px rgb(16 16 20 / 0.04);
+  --elevation-1: 0 4px 12px -2px rgb(16 16 20 / 0.08),
+    0 0 0 1px rgb(16 16 20 / 0.04);
+  --elevation-2: 0 12px 32px -8px rgb(16 16 20 / 0.12),
+    0 0 0 1px rgb(16 16 20 / 0.05);
+  --elevation-3: 0 24px 64px -12px rgb(16 16 20 / 0.16),
+    0 0 0 1px rgb(16 16 20 / 0.06);
+}
+
+/* Density */
+:root,
+[data-density="comfortable"] {
+  --density-row-h: 44px;
+  --density-control-h: 36px;
+  --density-card-p: 20px;
+  --density-cell-px: 12px;
+  --density-cell-fs: 14px;
+}
+
+[data-density="compact"] {
+  --density-row-h: 34px;
+  --density-control-h: 32px;
+  --density-card-p: 16px;
+  --density-cell-px: 10px;
+  --density-cell-fs: 13px;
+}
+
+/* Focus & z-index */
+:root {
+  --focus-ring: 0 0 0 2px var(--ring-offset), 0 0 0 4px var(--ring);
+  --z-base: 0;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-sidebar: 40;
+  --z-overlay: 50;
+  --z-modal: 60;
+  --z-popover: 70;
+  --z-command: 75;
+  --z-toast: 80;
+  --z-tooltip: 90;
+}
+
+/* Legacy v1 CSS variables (glass, mesh, gradients) */
+[data-ui="v1"] {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: rgba(24, 24, 27, 0.6);
+  --card-solid: #18181b;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.14);
+  --primary: #38bdf8;
+  --primary-dark: #0ea5e9;
+  --accent: #818cf8;
+  --muted: #71717a;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --glow: rgba(56, 189, 248, 0.15);
+}

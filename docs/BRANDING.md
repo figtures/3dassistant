@@ -30,3 +30,26 @@ Köprü UI metninde ürün adı **PrintFlow Bridge** olarak kalabilir; bulut uyg
 ## Supabase
 
 Mevcut proje URL’leri ve bağlantı dizeleri korunur; marka değişikliği yeni Supabase projesi gerektirmez.
+
+## UI v2 bayrağı (`ui_v2`)
+
+Yeni Forge arayüzü (grafit + turuncu aksan) v1 ile yan yana çalışır. Çözümleme sırası:
+
+1. URL `?ui=v2` veya `?ui=v1` → `src/proxy.ts` `pf_ui` çerezini yazır ve parametreyi kaldırarak yönlendirir.
+2. Çerez `pf_ui` (`v1` | `v2`).
+3. Ortam: `UI_V2_DEFAULT=true` (sunucu) veya `NEXT_PUBLIC_UI_V2_DEFAULT=true` (istemci varsayılanı).
+4. Varsayılan: `v1`.
+
+**Yerelde v2 açmak**
+
+- Tarayıcı: `http://localhost:3000/?ui=v2` (veya herhangi bir sayfa `?ui=v2`).
+- `.env.local`: `UI_V2_DEFAULT=true` ve/veya `NEXT_PUBLIC_UI_V2_DEFAULT=true`.
+- Legacy’ye dönmek: `?ui=v1` veya çerezi silin.
+
+**Kod**
+
+- Sunucu: `getUiVersion()`, `isUiV2()` → `@/lib/flags/ui-version.server`
+- İstemci: `isUiV2()`, `getClientUiVersion()` → `@/lib/flags/ui-version.client`
+- React: `useUiVersion()` → `@/components/flags/ui-version-provider`
+
+Kök `layout.tsx` `<html data-ui="v1|v2" data-theme="dark">` üretir. Token referansı (geliştirme): `/design-tokens`. Detay: `docs/redesign/05-delivery-staging-prod.md` §3.

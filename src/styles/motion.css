@@ -1,0 +1,45 @@
+:root {
+  --motion-instant: 80ms;
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --motion-slower: 320ms;
+}
+
+@keyframes pf-pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in oklab, var(--state-printing) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px
+      color-mix(in oklab, var(--state-printing) 0%, transparent);
+  }
+}
+
+.pf-pulse-dot {
+  animation: pf-pulse-dot 2s var(--ease-standard, ease) infinite;
+}
+
+.pf-layer-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--foreground) 5%, transparent) 0 1px,
+    transparent 1px 6px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pf-pulse-dot {
+    animation: none;
+  }
+}
