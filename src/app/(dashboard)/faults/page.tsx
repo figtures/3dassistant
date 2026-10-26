@@ -28,6 +28,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useUiVersion } from "@/components/flags/ui-version-provider";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const STATUS_LABELS: Record<FaultStatus, string> = {
   open: "Açık",
@@ -56,6 +58,9 @@ export default function FaultsPage() {
   const [voiceMatched, setVoiceMatched] = useState<string[]>([]);
   const [voiceFieldConfidence, setVoiceFieldConfidence] = useState<VoiceFieldConfidence>({});
   const [voiceParseSource, setVoiceParseSource] = useState<VoiceParseSource | undefined>();
+  const uiVersion = useUiVersion();
+  const confirmAction = useConfirm();
+
   const [form, setForm] = useState({
     machine_id: "",
     fault_type_id: "",
@@ -207,7 +212,16 @@ export default function FaultsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Bu arıza kaydını silmek istediğinize emin misiniz?")) return;
+    const confirmed =
+      uiVersion === "v2"
+        ? await confirmAction({
+            title: "Arıza kaydını sil",
+            description: "Bu arıza kaydını silmek istediğinize emin misiniz?",
+            confirmLabel: "Sil",
+            tone: "destructive",
+          })
+        : confirm("Bu arıza kaydını silmek istediğinize emin misiniz?");
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("faults").delete().eq("id", id);
     if (error) toast.error(error.message);

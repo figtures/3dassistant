@@ -33,6 +33,8 @@ import {
   Truck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useUiVersion } from "@/components/flags/ui-version-provider";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const CHANNELS = ["Trendyol", "Hepsiburada", "Amazon", "N11", "Direkt", "Diğer"];
 
@@ -44,6 +46,8 @@ export default function ProcurementPage() {
   const { data: purchases = [], isLoading: purLoading } = useMaterialPurchases();
   const { data: materials = [] } = useMaterials();
   const [tab, setTab] = useState<Tab>("purchases");
+  const uiVersion = useUiVersion();
+  const confirmAction = useConfirm();
 
   const [supplierModal, setSupplierModal] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -130,7 +134,16 @@ export default function ProcurementPage() {
   }
 
   async function deleteSupplier(id: string) {
-    if (!confirm("Bu tedarikçiyi silmek istiyor musunuz?")) return;
+    const confirmed =
+      uiVersion === "v2"
+        ? await confirmAction({
+            title: "Tedarikçiyi sil",
+            description: "Bu tedarikçiyi silmek istiyor musunuz?",
+            confirmLabel: "Sil",
+            tone: "destructive",
+          })
+        : confirm("Bu tedarikçiyi silmek istiyor musunuz?");
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("suppliers").delete().eq("id", id);
     if (error) toast.error(error.message);
@@ -280,7 +293,16 @@ export default function ProcurementPage() {
   }
 
   async function deletePurchase(id: string) {
-    if (!confirm("Bu alım kaydını silmek stok düzeltmesi yapar. Devam?")) return;
+    const confirmed =
+      uiVersion === "v2"
+        ? await confirmAction({
+            title: "Alım kaydını sil",
+            description: "Bu alım kaydını silmek stok düzeltmesi yapar. Devam?",
+            confirmLabel: "Sil",
+            tone: "destructive",
+          })
+        : confirm("Bu alım kaydını silmek stok düzeltmesi yapar. Devam?");
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("material_purchases").delete().eq("id", id);
     if (error) toast.error(error.message);

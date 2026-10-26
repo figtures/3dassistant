@@ -17,6 +17,8 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@/comp
 import { formatGrams, formatCurrency } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Loader2, Package, X } from "lucide-react";
 import { toast } from "sonner";
+import { useUiVersion } from "@/components/flags/ui-version-provider";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const PRESET_MATERIALS = ["PLA", "PETG", "ASA", "ABS", "TPU", "Nylon", "PC", "HIPS"];
 
@@ -39,6 +41,8 @@ export default function MaterialsPage() {
   const [form, setForm] = useState({ name: "", brand: "", price_per_kg: "" });
   const [colors, setColors] = useState<ColorFormRow[]>([emptyColorRow()]);
   const [saving, setSaving] = useState(false);
+  const uiVersion = useUiVersion();
+  const confirmAction = useConfirm();
 
   function openCreate(preset?: string) {
     setEditing(null);
@@ -180,7 +184,16 @@ export default function MaterialsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Bu malzemeyi silmek istediğinize emin misiniz?")) return;
+    const confirmed =
+      uiVersion === "v2"
+        ? await confirmAction({
+            title: "Malzemeyi sil",
+            description: "Bu malzemeyi silmek istediğinize emin misiniz?",
+            confirmLabel: "Sil",
+            tone: "destructive",
+          })
+        : confirm("Bu malzemeyi silmek istediğinize emin misiniz?");
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("materials").delete().eq("id", id);
     if (error) toast.error(error.message);

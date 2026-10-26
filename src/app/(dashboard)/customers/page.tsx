@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useUiVersion } from "@/components/flags/ui-version-provider";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export default function CustomersPage() {
   const queryClient = useQueryClient();
@@ -58,6 +60,8 @@ export default function CustomersPage() {
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<{ name: string; email?: string; phone?: string; company?: string; notes?: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const uiVersion = useUiVersion();
+  const confirmAction = useConfirm();
 
   const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition({
     onResult: (text) => {
@@ -148,7 +152,16 @@ export default function CustomersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Bu müşteriyi silmek istediğinize emin misiniz?")) return;
+    const confirmed =
+      uiVersion === "v2"
+        ? await confirmAction({
+            title: "Müşteriyi sil",
+            description: "Bu müşteriyi silmek istediğinize emin misiniz?",
+            confirmLabel: "Sil",
+            tone: "destructive",
+          })
+        : confirm("Bu müşteriyi silmek istediğinize emin misiniz?");
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("customers").delete().eq("id", id);
     if (error) toast.error(error.message);
