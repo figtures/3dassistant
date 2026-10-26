@@ -1,4 +1,18 @@
 import { notFound } from "next/navigation";
+import { Inbox } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  EmptyState,
+  Input,
+  Label,
+  Skeleton,
+  Textarea,
+} from "@/components/ds";
 
 const semanticColors = [
   { name: "background", className: "bg-background" },
@@ -146,6 +160,62 @@ export default function DesignTokensPage() {
             <div className="rounded-xl border border-border bg-card p-6 pf-layer-lines">
               pf-layer-lines motif
             </div>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold">Bileşenler (ds)</h2>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="primary">Birincil</Button>
+              <Button variant="secondary">İkincil</Button>
+              <Button variant="ghost">Hayalet</Button>
+              <Button variant="danger">Tehlike</Button>
+              <Button variant="primary" size="sm">
+                Küçük
+              </Button>
+              <Button variant="primary" loading>
+                Yükleniyor
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card surface={1}>
+                <CardHeader>
+                  <CardTitle>surface-1 kart</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  <div className="space-y-2">
+                    <Label htmlFor="demo-input">Etiket</Label>
+                    <Input id="demo-input" placeholder="Örnek metin" />
+                    <Textarea placeholder="Çok satırlı alan" rows={2} />
+                  </div>
+                  <Skeleton className="h-8 w-full" />
+                </CardContent>
+              </Card>
+              <Card surface={2}>
+                <CardHeader>
+                  <CardTitle>surface-2 kart</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-2 pt-0">
+                  <Badge tone="primary">primary</Badge>
+                  <Badge tone="success">success</Badge>
+                  <Badge tone="warning">warning</Badge>
+                  <Badge machineState="printing" />
+                  <Badge machineState="error" />
+                  <Badge machineState="idle" />
+                </CardContent>
+              </Card>
+            </div>
+            <EmptyState
+              icon={Inbox}
+              title="Henüz kayıt yok"
+              description="İlk siparişinizi oluşturduğunuzda burada görünür."
+              action={
+                <Button variant="primary" size="sm">
+                  Sipariş oluştur
+                </Button>
+              }
+            />
           </div>
         </section>
 
