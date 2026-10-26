@@ -23,7 +23,7 @@
     "test:bridge-detect-platform": "npx tsx --test src/lib/bridge/detect-platform.test.ts",
     "test:support": "npx tsx --test src/lib/support/*.test.ts",
     "test:flags": "npx tsx --test src/lib/flags/*.test.ts",
-    "test:ds": "npx tsx --test src/components/ds/*.test.ts",
+    "test:ds": "node --experimental-strip-types --test src/components/ds/ds.test.ts",
     "test:nav": "npx tsx --test src/lib/nav.test.ts",
     "test:bridge-camera": "npx tsx --test src/lib/bridge/camera.test.ts",
     "test:telemetry-history": "npx tsx --test src/lib/printer-monitoring/telemetry-history.test.ts",
