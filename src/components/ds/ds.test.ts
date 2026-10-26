@@ -5,7 +5,7 @@ import {
   buttonVariants,
   machineStateBadgeVariants,
   MACHINE_STATE_LABELS,
-} from "./variants.ts";
+} from "./variants";
 
 describe("buttonVariants", () => {
   it("maps primary md to token classes", () => {
