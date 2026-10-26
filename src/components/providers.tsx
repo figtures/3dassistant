@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { UiVersionProvider } from "@/components/flags/ui-version-provider";
+import { ConfirmProvider } from "@/hooks/use-confirm";
 import { toastIcons } from "@/components/ui/toast-icons";
 import type { UiVersion } from "@/lib/flags/ui-version.shared";
 
@@ -28,6 +29,7 @@ export function Providers({
 
   return (
     <UiVersionProvider value={uiVersion}>
+      <ConfirmProvider>
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster
@@ -49,6 +51,7 @@ export function Providers({
           }}
         />
       </QueryClientProvider>
+      </ConfirmProvider>
     </UiVersionProvider>
   );
 }

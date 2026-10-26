@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   badgeToneVariants,
   buttonVariants,
+  dialogContentSizeVariants,
   machineStateBadgeVariants,
   MACHINE_STATE_LABELS,
 } from "./variants";
@@ -20,6 +21,13 @@ describe("buttonVariants", () => {
     const classes = buttonVariants({ variant: "danger", size: "icon" });
     assert.match(classes, /bg-destructive/);
     assert.match(classes, /size-9/);
+  });
+});
+
+describe("dialogContentSizeVariants", () => {
+  it("maps dialog sizes to max-width tokens", () => {
+    assert.match(dialogContentSizeVariants({ size: "sm" }), /max-w-\[400px\]/);
+    assert.match(dialogContentSizeVariants({ size: "xl" }), /max-w-\[960px\]/);
   });
 });
 

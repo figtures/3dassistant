@@ -128,3 +128,18 @@ export const cardSurfaceVariants = variantBuilder(
   },
   { surface: 1 }
 );
+
+const dialogContentSizeMap = {
+  sm: "sm:max-w-[400px]",
+  md: "sm:max-w-[560px]",
+  lg: "sm:max-w-[720px]",
+  xl: "sm:max-w-[960px]",
+} as const;
+
+export const dialogContentSizeVariants = variantBuilder(
+  "w-full",
+  { size: dialogContentSizeMap },
+  { size: "md" }
+);
+
+export type DialogContentSize = keyof typeof dialogContentSizeMap;

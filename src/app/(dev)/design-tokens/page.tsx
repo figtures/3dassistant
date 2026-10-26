@@ -13,6 +13,7 @@ import {
   Skeleton,
   Textarea,
 } from "@/components/ds";
+import { DesignTokensDialogDemo } from "@/app/(dev)/design-tokens/dialog-demo";
 
 const semanticColors = [
   { name: "background", className: "bg-background" },
@@ -216,6 +217,7 @@ export default function DesignTokensPage() {
                 </Button>
               }
             />
+            <DesignTokensDialogDemo />
           </div>
         </section>
 

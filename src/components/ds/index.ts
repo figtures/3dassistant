@@ -28,6 +28,24 @@ export {
 export { Badge, type BadgeProps, type BadgeTone } from "@/components/ds/badge";
 export { Skeleton } from "@/components/ds/skeleton";
 export { EmptyState, type EmptyStateProps } from "@/components/ds/empty-state";
+export {
+  Dialog,
+  DialogTrigger,
+  DialogClose,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  type DialogContentProps,
+} from "@/components/ds/dialog";
+export {
+  ConfirmDialog,
+  type ConfirmDialogProps,
+  type ConfirmDialogTone,
+} from "@/components/ds/confirm-dialog";
 
 export {
   buttonVariants,

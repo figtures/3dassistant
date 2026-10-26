@@ -25,6 +25,8 @@ import type { Machine, PrinterVendor } from "@/types/database";
 import { toast } from "sonner";
 import type { MachineStatus } from "@/types/database";
 import { useSupportReport } from "@/components/support/report-problem-modal";
+import { useUiVersion } from "@/components/flags/ui-version-provider";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const STATUS_LABELS: Record<MachineStatus, string> = {
   active: "Aktif",
@@ -48,6 +50,8 @@ export default function MachinesPage() {
   const [reconnectAccountId, setReconnectAccountId] = useState<string | null>(null);
   const [reconnectVendor, setReconnectVendor] = useState<PrinterVendor | null>(null);
   const { openReport } = useSupportReport();
+  const uiVersion = useUiVersion();
+  const confirmAction = useConfirm();
 
   const handleOAuthConnected = useCallback((accountId: string, mock: boolean) => {
     setOauthAccountId(accountId);
@@ -140,7 +144,16 @@ export default function MachinesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Bu makineyi silmek istediğinize emin misiniz?")) return;
+    const confirmed =
+      uiVersion === "v2"
+        ? await confirmAction({
+            title: "Makineyi sil",
+            description: "Bu makineyi silmek istediğinize emin misiniz?",
+            confirmLabel: "Sil",
+            tone: "destructive",
+          })
+        : confirm("Bu makineyi silmek istediğinize emin misiniz?");
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("machines").delete().eq("id", id);
     if (error) toast.error(error.message);
