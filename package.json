@@ -25,6 +25,7 @@
     "test:flags": "npx tsx --test src/lib/flags/*.test.ts",
     "test:ds": "npx tsx --test src/components/ds/ds.test.ts",
     "test:nav": "npx tsx --test src/lib/nav.test.ts",
+    "test:color-contrast": "npx tsx --test src/lib/color-contrast.test.ts",
     "test:bridge-camera": "npx tsx --test src/lib/bridge/camera.test.ts",
     "test:telemetry-history": "npx tsx --test src/lib/printer-monitoring/telemetry-history.test.ts",
     "test:device-catalog": "npx tsx --test src/lib/printer-cloud/device-catalog.test.ts",
@@ -84,6 +85,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "ws": "^8.22.0"
   }
