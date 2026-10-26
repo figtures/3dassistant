@@ -12,6 +12,10 @@ import {
   SidebarNavPanel,
 } from "@/components/v2/shell/sidebar-nav";
 import { TopBar } from "@/components/v2/shell/topbar";
+import {
+  CommandPaletteHost,
+  useCommandShortcut,
+} from "@/components/v2/command/command-palette-host";
 import { MobileNavSheet } from "@/components/v2/shell/mobile-nav";
 import { useNavBadges } from "@/components/v2/shell/use-nav-badges";
 import type { ShellUser } from "@/components/v2/shell/user-menu";
@@ -40,6 +44,7 @@ export function AppShellV2({
 }: AppShellV2Props) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen, paletteEverOpened] = useCommandShortcut();
   const badges = useNavBadges();
   const isAdmin = isSupportAdmin;
 
@@ -100,7 +105,17 @@ export function AppShellV2({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <TopBar user={user} onOpenMobileNav={() => setMobileOpen(true)} />
+        <TopBar
+          user={user}
+          onOpenMobileNav={() => setMobileOpen(true)}
+          onOpenCommandPalette={() => setPaletteOpen(true)}
+        />
+        <CommandPaletteHost
+          open={paletteOpen}
+          onOpenChange={setPaletteOpen}
+          everOpened={paletteEverOpened}
+          isAdmin={isAdmin}
+        />
         <main
           id="main"
           tabIndex={-1}
