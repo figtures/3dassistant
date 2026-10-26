@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getBreadcrumbs, groupNavItems, NAV_ITEMS } from "@/lib/nav";
+import {
+  applyBreadcrumbLabels,
+  getBreadcrumbs,
+  groupNavItems,
+  NAV_ITEMS,
+} from "@/lib/nav";
 
 describe("getBreadcrumbs", () => {
   it("maps known routes", () => {
@@ -19,6 +24,15 @@ describe("getBreadcrumbs", () => {
     assert.equal(crumbs[0].href, "/machines");
     assert.equal(crumbs[1].label, "Detay");
     assert.equal(crumbs[1].href, undefined);
+  });
+});
+
+describe("applyBreadcrumbLabels", () => {
+  it("overrides dynamic segment labels", () => {
+    const base = getBreadcrumbs("/machines/abc-123");
+    const labels = new Map([["abc-123", "X1 Carbon"]]);
+    const merged = applyBreadcrumbLabels(base, "/machines/abc-123", labels);
+    assert.equal(merged[1].label, "X1 Carbon");
   });
 });
 

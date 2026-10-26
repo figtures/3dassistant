@@ -172,6 +172,21 @@ export function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   return crumbs;
 }
 
+/** v2: `useBreadcrumbLabel(segment, …)` ile gelen geçersiz kılma. */
+export function applyBreadcrumbLabels(
+  crumbs: BreadcrumbSegment[],
+  pathname: string,
+  labels: ReadonlyMap<string, string>
+): BreadcrumbSegment[] {
+  if (!labels.size) return crumbs;
+  const segments = pathname.split("/").filter(Boolean);
+  return crumbs.map((crumb, i) => {
+    const seg = segments[i];
+    const override = seg ? labels.get(seg) : undefined;
+    return override ? { ...crumb, label: override } : crumb;
+  });
+}
+
 export function groupNavItems(
   items: NavItem[],
   opts?: { isAdmin?: boolean }

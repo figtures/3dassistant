@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LifeBuoy, Menu, MessageCircleWarning, Search } from "lucide-react";
 import { getCommandShortcutLabel } from "@/components/v2/command/use-command-shortcut";
-import { getBreadcrumbs } from "@/lib/nav";
+import { applyBreadcrumbLabels, getBreadcrumbs } from "@/lib/nav";
+import { useBreadcrumbLabelMap } from "@/hooks/use-breadcrumb-label";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ds";
 import { FleetPulse } from "@/components/v2/shell/fleet-pulse";
@@ -21,7 +22,12 @@ export function TopBar({
   onOpenCommandPalette: () => void;
 }) {
   const pathname = usePathname();
-  const crumbs = getBreadcrumbs(pathname);
+  const labelMap = useBreadcrumbLabelMap();
+  const crumbs = applyBreadcrumbLabels(
+    getBreadcrumbs(pathname),
+    pathname,
+    labelMap
+  );
   const { openReport } = useSupportReport();
 
   return (

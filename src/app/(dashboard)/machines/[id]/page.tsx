@@ -1,8 +1,15 @@
-import { MachineDetailPanel } from "@/components/machines/machine-detail-panel";
+import { isUiV2 } from "@/lib/flags/ui-version.server";
+import MachineDetailLegacyPage from "@/legacy/pages/machine-detail-page";
+import { MachineDetailScreen } from "@/features/machines/machine-detail-screen";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function MachineDetailPage({ params }: Props) {
   const { id } = await params;
-  return <MachineDetailPanel machineId={id} />;
+
+  if (await isUiV2()) {
+    return <MachineDetailScreen machineId={id} />;
+  }
+
+  return <MachineDetailLegacyPage machineId={id} />;
 }
