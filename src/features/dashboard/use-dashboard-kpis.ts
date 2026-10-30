@@ -4,8 +4,7 @@ import { useMemo } from "react";
 import { useFleetLiveSse } from "@/hooks/use-machine-sse";
 import { useJobs, useMaterials } from "@/hooks/use-data";
 import { deriveMachineState } from "@/lib/machine-state";
-
-const LOW_STOCK_GRAMS = 500;
+import { isLowStock, lowStockThreshold } from "@/lib/stock";
 
 export type DashboardKpis = {
   activeJobs: number;
@@ -53,7 +52,11 @@ export function useDashboardKpis(): {
     let criticalStock = 0;
     for (const material of materialsQuery.data ?? []) {
       for (const color of material.material_colors ?? []) {
-        if ((color.stock_grams ?? 0) < LOW_STOCK_GRAMS) criticalStock += 1;
+        if (
+          isLowStock(color.stock_grams, lowStockThreshold(color.low_stock_grams))
+        ) {
+          criticalStock += 1;
+        }
       }
     }
 

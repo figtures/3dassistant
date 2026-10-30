@@ -33,6 +33,8 @@ export interface MaterialColor {
   color_name: string;
   hex_code: string | null;
   stock_grams: number;
+  /** null = varsayılan 500 g (P2-06) */
+  low_stock_grams?: number | null;
   sort_order: number;
   created_at: string;
   updated_at: string;

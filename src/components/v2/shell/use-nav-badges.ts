@@ -5,8 +5,7 @@ import { useFleetLiveSse } from "@/hooks/use-machine-sse";
 import { useJobs, useMaterials } from "@/hooks/use-data";
 import { deriveMachineState } from "@/lib/machine-state";
 import type { NavBadgeKey } from "@/lib/nav";
-
-const LOW_STOCK_GRAMS = 500;
+import { isLowStock, lowStockThreshold } from "@/lib/stock";
 
 export type NavBadges = Partial<Record<NavBadgeKey, number>>;
 
@@ -40,7 +39,11 @@ export function useNavBadges(): NavBadges {
     let lowStock = 0;
     for (const material of materials ?? []) {
       for (const color of material.material_colors ?? []) {
-        if ((color.stock_grams ?? 0) < LOW_STOCK_GRAMS) lowStock += 1;
+        if (
+          isLowStock(color.stock_grams, lowStockThreshold(color.low_stock_grams))
+        ) {
+          lowStock += 1;
+        }
       }
     }
     if (lowStock > 0) badges.lowStock = lowStock;
