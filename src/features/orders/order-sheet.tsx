@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -39,7 +40,7 @@ import {
   type PendingNote,
 } from "@/features/orders/use-order-mutations";
 import { formatDateShort } from "@/lib/format";
-import { Loader2, Trash2, Upload } from "lucide-react";
+import { ExternalLink, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export type OrderSheetProps = {
@@ -406,21 +407,33 @@ export function OrderSheet({
         </div>
         <DialogFooter className="gap-2 sm:justify-between">
           {!isNew ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-destructive hover:text-destructive"
-              onClick={() => void handleDelete()}
-              disabled={deleting || saving}
-              aria-label="Siparişi sil"
-            >
-              {deleting ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
-              Sil
-            </Button>
+            <div className="flex flex-wrap items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => void handleDelete()}
+                disabled={deleting || saving}
+                aria-label="Siparişi sil"
+              >
+                {deleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                Sil
+              </Button>
+              {(savedJobId ?? loadedJob?.id) ? (
+                <Link
+                  href={`/orders/${savedJobId ?? loadedJob?.id}`}
+                  onClick={() => onOpenChange(false)}
+                  className="inline-flex h-8 items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
+                >
+                  <ExternalLink className="size-4" aria-hidden />
+                  Tam sayfada aç
+                </Link>
+              ) : null}
+            </div>
           ) : (
             <span />
           )}

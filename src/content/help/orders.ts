@@ -5,7 +5,7 @@ export const helpOrders: PageHelpContent = {
   items: [
     "Siparişler üretim işleri (jobs) üzerinden listelenir; arama ve filtreler URL'de saklanır.",
     "Durum ve teslim tarihine göre sıralayıp paylaşılabilir link oluşturabilirsiniz.",
-    "Satıra tıklayarak detayı sheet içinde açabilirsiniz.",
+    "Satıra tıklayarak detayı sheet içinde açabilirsiniz; sheet'ten tam sayfaya geçebilirsiniz.",
     "Geciken siparişler kenar çubuğu rozetinde de görünür.",
   ],
 };

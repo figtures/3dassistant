@@ -28,6 +28,14 @@ describe("getBreadcrumbs", () => {
     assert.equal(crumbs[1].label, "Detay");
     assert.equal(crumbs[1].href, undefined);
   });
+
+  it("builds order detail breadcrumbs", () => {
+    const crumbs = getBreadcrumbs("/orders/job-1");
+    assert.equal(crumbs.length, 2);
+    assert.equal(crumbs[0].label, "Siparişler");
+    assert.equal(crumbs[0].href, "/orders");
+    assert.equal(crumbs[1].label, "Detay");
+  });
 });
 
 describe("applyBreadcrumbLabels", () => {

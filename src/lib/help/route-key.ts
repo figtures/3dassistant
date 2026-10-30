@@ -13,6 +13,7 @@ export function helpRouteKeyFromPathname(pathname: string): string {
 
   if (root === "catalog" && second) return "catalog-detail";
   if (root === "customers" && second) return "customers-detail";
+  if (root === "orders" && second) return "orders-detail";
   if (root === "support" && second === "admin") return "support-admin";
   if (root === "support" && second) return "support-ticket";
 

@@ -13,6 +13,7 @@ import { helpMachinesConnect } from "@/content/help/machines-connect";
 import { helpMachinesDetail } from "@/content/help/machines-detail";
 import { helpMaterials } from "@/content/help/materials";
 import { helpOrders } from "@/content/help/orders";
+import { helpOrdersDetail } from "@/content/help/orders-detail";
 import { helpPlanning } from "@/content/help/planning";
 import { helpProcurement } from "@/content/help/procurement";
 import { helpSupport } from "@/content/help/support";
@@ -22,6 +23,7 @@ import { helpRouteKeyFromPathname } from "@/lib/help/route-key";
 const HELP_BY_KEY: Record<string, PageHelpContent> = {
   dashboard: helpDashboard,
   orders: helpOrders,
+  "orders-detail": helpOrdersDetail,
   planning: helpPlanning,
   calendar: helpCalendar,
   machines: helpMachines,
