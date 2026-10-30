@@ -11,7 +11,7 @@
     "billing:dev-grant": "npx tsx scripts/dev-grant-plan.ts",
     "test:parse": "npx tsx --test src/lib/parse-note.test.ts",
     "test:voice-llm": "npx tsx --test src/lib/voice-llm.test.ts",
-    "test:reminders": "npx tsx --test src/lib/overdue-reminders.test.ts",
+    "test:reminders": "npx tsx --test src/lib/overdue-reminders.test.ts src/lib/notifications/*.test.ts",
     "test:mesh-metrics": "npx tsx --test src/lib/mesh-metrics.test.ts",
     "test:integration-crypto": "npx tsx --test src/lib/integration-crypto.test.ts",
     "test:billing": "npx tsx --test src/lib/billing/webhook.test.ts",

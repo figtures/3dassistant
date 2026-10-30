@@ -489,6 +489,37 @@ export interface DashboardMetrics {
 
 export type AuditAction = "insert" | "update" | "delete";
 
+export const NOTIFICATION_KINDS = [
+  "machine",
+  "order",
+  "stock",
+  "payment",
+  "team",
+  "system",
+] as const;
+
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+
+export interface Notification {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  kind: NotificationKind;
+  title: string;
+  body: string | null;
+  href: string | null;
+  seen_at: string | null;
+  done_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationPreference {
+  user_id: string;
+  kind: NotificationKind;
+  in_app: boolean;
+  email: boolean;
+}
+
 export interface AuditEvent {
   id: number;
   workspace_id: string;

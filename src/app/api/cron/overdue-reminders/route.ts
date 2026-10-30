@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
+import { processJobNotificationCron } from "@/lib/notifications/cron-jobs";
 import {
   formatOverdueEmail,
   isJobOverdueForReminder,
@@ -40,13 +41,35 @@ export async function GET(request: NextRequest) {
     }
 
     const userIds = [...new Set((jobs ?? []).map((j) => j.user_id))];
+    const { data: members } = await supabase
+      .from("workspace_members")
+      .select("user_id")
+      .in("workspace_id", userIds);
+
+    const memberUserIds = [
+      ...new Set([
+        ...userIds,
+        ...(members ?? []).map((m) => m.user_id),
+      ]),
+    ];
+
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, email, full_name")
-      .in("id", userIds);
+      .in("id", memberUserIds);
 
     const profileMap = new Map(
       (profiles ?? []).map((p) => [p.id, p])
+    );
+
+    const profileEmails = new Map<string, string | null>(
+      (profiles ?? []).map((p) => [p.id, p.email])
+    );
+
+    const notificationStats = await processJobNotificationCron(
+      supabase,
+      (jobs ?? []) as OverdueJob[],
+      profileEmails
     );
 
     let sent = 0;
@@ -104,6 +127,7 @@ export async function GET(request: NextRequest) {
       sent,
       skipped,
       errors,
+      notifications: notificationStats,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

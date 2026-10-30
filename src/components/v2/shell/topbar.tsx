@@ -11,6 +11,7 @@ import { Button } from "@/components/ds";
 import { FleetPulse } from "@/components/v2/shell/fleet-pulse";
 import { UserMenu, type ShellUser } from "@/components/v2/shell/user-menu";
 import { HelpMenu } from "@/components/v2/help/help-menu";
+import { NotificationBell } from "@/components/v2/notifications/notification-bell";
 
 export function TopBar({
   user,
@@ -104,6 +105,7 @@ export function TopBar({
           shortcutsOpen={shortcutsOpen}
           onShortcutsOpenChange={onShortcutsOpenChange}
         />
+        <NotificationBell />
         <UserMenu user={user} />
       </div>
     </header>
