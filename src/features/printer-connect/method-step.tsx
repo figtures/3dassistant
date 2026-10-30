@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Lock, Thermometer, Layers, Camera } from "lucide-react";
 import { Badge, Button } from "@/components/ds";
 import { cn } from "@/lib/utils";
@@ -9,7 +8,10 @@ import {
   isMethodAvailable,
   type ConnectMethod,
   type ConnectVendor,
+  type MethodOption,
 } from "@/features/printer-connect/methods";
+import { openUpgradePromptFromPlanError } from "@/lib/billing/handle-plan-error";
+import type { BillableFeature } from "@/lib/billing/features";
 
 type MethodStepProps = {
   vendor: ConnectVendor;
@@ -51,8 +53,18 @@ export function MethodStep({
 }: MethodStepProps) {
   const options = methodsForVendor(vendor);
 
-  function handleClick(method: ConnectMethod, locked: boolean) {
-    if (locked) return;
+  function lockedFeature(opt: MethodOption): BillableFeature {
+    return opt.id === "bridge" ? "bridge_pairing" : "cloud_sync";
+  }
+
+  function handleClick(method: ConnectMethod, locked: boolean, opt: MethodOption) {
+    if (locked) {
+      openUpgradePromptFromPlanError(
+        { error: `${opt.label} ${opt.badge ?? "Atölye planında"}.` },
+        lockedFeature(opt)
+      );
+      return;
+    }
     onSelect(method);
   }
 
@@ -67,11 +79,10 @@ export function MethodStep({
             <li key={opt.id}>
               <button
                 type="button"
-                disabled={locked}
-                onClick={() => handleClick(opt.id, locked)}
+                onClick={() => handleClick(opt.id, locked, opt)}
                 className={cn(
                   "w-full rounded-xl border p-4 text-left transition",
-                  locked && "cursor-not-allowed opacity-90",
+                  locked && "cursor-pointer",
                   isSelected && !locked
                     ? "border-primary bg-primary-subtle ring-1 ring-primary/30"
                     : "border-border bg-card hover:border-primary/40",
@@ -102,13 +113,9 @@ export function MethodStep({
                   <LiveIcons {...opt.live} />
                 </p>
                 {locked ? (
-                  <Link
-                    href="/billing?reason=cloud"
-                    className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Planları karşılaştır →
-                  </Link>
+                  <span className="mt-2 inline-block text-xs font-medium text-primary">
+                    Planı yükseltmek için tıklayın
+                  </span>
                 ) : null}
               </button>
             </li>

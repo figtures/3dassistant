@@ -173,7 +173,10 @@ export function BridgeConnectStep({ onLinked, onBack }: BridgeConnectStepProps) 
       const res = await fetch("/api/bridge/pairing-codes", { method: "POST" });
       const body = await res.json().catch(() => ({}));
       if (res.status === 402) {
-        toast.error(body.error);
+        const { handlePlanErrorResponse } = await import(
+          "@/lib/billing/handle-plan-error"
+        );
+        await handlePlanErrorResponse(res, body, "bridge_pairing");
         return;
       }
       if (!res.ok) throw new Error(body.error ?? "Kod oluşturulamadı");

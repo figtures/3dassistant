@@ -60,9 +60,13 @@ export function ManualStep({ onSaved, onBack }: ManualStepProps) {
     setSaving(false);
     if (error) {
       if (error.hint === "PLAN_MACHINE_LIMIT") {
-        toast.error(error.message, {
-          action: { label: "Planı yükselt", onClick: () => router.push("/billing") },
-        });
+        const { openUpgradePromptFromPlanError } = await import(
+          "@/lib/billing/handle-plan-error"
+        );
+        openUpgradePromptFromPlanError(
+          { error: error.message, hint: error.hint },
+          "machine_slots"
+        );
       } else {
         toast.error(error.message);
       }

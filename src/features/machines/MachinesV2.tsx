@@ -199,9 +199,13 @@ function MachinesV2Content() {
       });
       if (error) {
         if (error.hint === "PLAN_MACHINE_LIMIT") {
-          toast.error(error.message, {
-            action: { label: "Planı yükselt", onClick: () => router.push("/billing") },
-          });
+          const { openUpgradePromptFromPlanError } = await import(
+            "@/lib/billing/handle-plan-error"
+          );
+          openUpgradePromptFromPlanError(
+            { error: error.message, hint: error.hint },
+            "machine_slots"
+          );
           queryClient.invalidateQueries({ queryKey: ["entitlements"] });
         } else {
           toast.error(error.message);
@@ -224,12 +228,10 @@ function MachinesV2Content() {
       const res = await fetch(`/api/machines/${id}/sync`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (res.status === 402) {
-        toast.error(data.error, {
-          action: {
-            label: "Planı yükselt",
-            onClick: () => router.push("/billing?reason=cloud"),
-          },
-        });
+        const { handlePlanErrorResponse } = await import(
+          "@/lib/billing/handle-plan-error"
+        );
+        await handlePlanErrorResponse(res, data, "cloud_sync");
       } else if (data.fromBridge) {
         toast.info(data.message ?? "Köprü otomatik günceller");
       } else if (!res.ok) {

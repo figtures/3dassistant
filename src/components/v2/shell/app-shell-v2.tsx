@@ -19,6 +19,7 @@ import {
 import { MobileNavSheet } from "@/components/v2/shell/mobile-nav";
 import { useNavBadges } from "@/components/v2/shell/use-nav-badges";
 import type { ShellUser } from "@/components/v2/shell/user-menu";
+import { SidebarPlanCard } from "@/components/v2/shell/sidebar-plan-card";
 
 export type AppShellV2Props = {
   children: React.ReactNode;
@@ -96,6 +97,7 @@ export function AppShellV2({
           badges={badges}
           isAdmin={isAdmin}
         />
+        <SidebarPlanCard collapsed={collapsed} />
       </aside>
 
       <MobileNavSheet

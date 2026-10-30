@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { EntitlementsResponse } from "@/hooks/use-entitlements";
+import { openUpgradePromptFromPlanError } from "@/lib/billing/handle-plan-error";
 import { cn } from "@/lib/utils";
+
+const USAGE_WARN_RATIO = 0.8;
 
 export type PlanUsageMeterProps = {
   ent: EntitlementsResponse;
@@ -13,6 +16,7 @@ export function PlanUsageMeter({ ent, className }: PlanUsageMeterProps) {
   const used = usage.machines;
   const pct = max > 0 ? Math.min(100, (used / max) * 100) : 0;
   const atLimit = used >= max;
+  const nearLimit = max > 0 && used / max >= USAGE_WARN_RATIO && !atLimit;
 
   return (
     <div
@@ -28,13 +32,30 @@ export function PlanUsageMeter({ ent, className }: PlanUsageMeterProps) {
           </span>{" "}
           makine · {entitlements.planName} planı
         </span>
-        {atLimit ? (
-          <Link
-            href="/billing"
-            className="text-xs font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
-          >
-            Planı yükselt
-          </Link>
+        {atLimit || nearLimit ? (
+          atLimit ? (
+            <Link
+              href="/billing"
+              className="text-xs font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
+            >
+              Planı yükselt
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                openUpgradePromptFromPlanError(
+                  {
+                    error: `Makine kotanızın %${Math.round((used / max) * 100)}'ini kullanıyorsunuz.`,
+                  },
+                  "machine_slots"
+                )
+              }
+              className="text-xs font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
+            >
+              Kotayı kontrol et
+            </button>
+          )
         ) : null}
       </div>
       <div
@@ -48,7 +69,7 @@ export function PlanUsageMeter({ ent, className }: PlanUsageMeterProps) {
         <div
           className={cn(
             "h-full rounded-full transition-[width]",
-            atLimit ? "bg-warning" : "bg-primary"
+            atLimit || nearLimit ? "bg-warning" : "bg-primary"
           )}
           style={{ width: `${pct}%` }}
         />
