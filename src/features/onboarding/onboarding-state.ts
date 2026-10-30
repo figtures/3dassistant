@@ -36,7 +36,12 @@ export type OnboardingUserMetadata = {
     usage?: string;
   };
   wizardCompletedAt?: string | null;
+  /** Kurulum kontrol listesi tamamlandığında (P2-04) */
+  setupCompletedAt?: string | null;
 };
+
+/** Tamamlandıktan sonra kartın otomatik gizlenmesi (3 gün) */
+export const SETUP_CHECKLIST_AUTO_HIDE_MS = 3 * 24 * 60 * 60 * 1000;
 
 export type ComputeOnboardingInput = {
   machines: Pick<Machine, "connection_status">[];
@@ -193,6 +198,27 @@ export function machineConnectionCounts(
     }
   }
   return { total: machines.length, connected };
+}
+
+export function shouldShowSetupChecklist(
+  input: {
+    dismissed: boolean;
+    isComplete: boolean;
+    setupCompletedAt?: string | null;
+  },
+  nowMs = Date.now()
+): boolean {
+  if (input.dismissed) return false;
+  if (input.isComplete && input.setupCompletedAt) {
+    const completedAt = Date.parse(input.setupCompletedAt);
+    if (
+      !Number.isNaN(completedAt) &&
+      nowMs - completedAt > SETUP_CHECKLIST_AUTO_HIDE_MS
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function mergeOnboardingMetadata(

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useMaterials } from "@/hooks/use-data";
@@ -33,8 +34,23 @@ const PRESET_MATERIALS = ["PLA", "PETG", "ASA", "ABS", "TPU", "Nylon", "PC", "HI
 
 export function MaterialsV2() {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const confirmAction = useConfirm();
   const { data: materials = [], isLoading, isError, refetch } = useMaterials();
+
+  const patchUrl = useCallback(
+    (patch: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null || value === "") params.delete(key);
+        else params.set(key, value);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/materials?${qs}` : "/materials", { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
@@ -86,6 +102,15 @@ export function MaterialsV2() {
     setColors([emptyColorRow()]);
     setSheetOpen(true);
   }
+
+  useEffect(() => {
+    if (searchParams.get("new") !== "1") return;
+    setEditingId(null);
+    setForm({ name: "", brand: "", price_per_kg: "" });
+    setColors([emptyColorRow()]);
+    setSheetOpen(true);
+    patchUrl({ new: null });
+  }, [searchParams, patchUrl]);
 
   function openEdit(id: string) {
     const mat = materials.find((m) => m.id === id);

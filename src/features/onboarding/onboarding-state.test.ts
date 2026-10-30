@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   computeOnboarding,
   mergeOnboardingMetadata,
+  SETUP_CHECKLIST_AUTO_HIDE_MS,
+  shouldShowSetupChecklist,
   type OnboardingUserMetadata,
 } from "./onboarding-state";
 
@@ -120,6 +122,57 @@ describe("computeOnboarding", () => {
     const shown = computeOnboarding(baseInput({ showInviteTeam: true }));
     assert.ok(shown.steps.some((s) => s.id === "invite_team"));
     assert.equal(shown.total, 7);
+  });
+});
+
+describe("shouldShowSetupChecklist", () => {
+  it("gizlenmiş kart gösterilmez", () => {
+    assert.equal(
+      shouldShowSetupChecklist({
+        dismissed: true,
+        isComplete: false,
+      }),
+      false
+    );
+  });
+
+  it("tamamlanmadan önce gösterilir", () => {
+    assert.equal(
+      shouldShowSetupChecklist({
+        dismissed: false,
+        isComplete: false,
+      }),
+      true
+    );
+  });
+
+  it("tamamlandıktan 3 gün sonra gizlenir", () => {
+    const completedAt = new Date(
+      Date.now() - SETUP_CHECKLIST_AUTO_HIDE_MS - 1000
+    ).toISOString();
+    assert.equal(
+      shouldShowSetupChecklist(
+        {
+          dismissed: false,
+          isComplete: true,
+          setupCompletedAt: completedAt,
+        },
+        Date.now()
+      ),
+      false
+    );
+  });
+
+  it("tamamlandıktan sonra 3 gün içinde gösterilir", () => {
+    const completedAt = new Date().toISOString();
+    assert.equal(
+      shouldShowSetupChecklist({
+        dismissed: false,
+        isComplete: true,
+        setupCompletedAt: completedAt,
+      }),
+      true
+    );
   });
 });
 
