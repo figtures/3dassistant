@@ -13,6 +13,7 @@ import { SampleDataBanner } from "@/features/onboarding/sample-data-banner";
 import { AttentionList } from "@/features/dashboard/attention-list";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import { NpsCard } from "@/features/feedback/nps-card";
+import { DashboardChartsSection } from "@/features/dashboard/dashboard-charts-section";
 
 function greetingForHour(hour: number): string {
   if (hour < 12) return "Günaydın";
@@ -81,6 +82,8 @@ export function DashboardV2({ displayName }: DashboardV2Props) {
           <RecentActivity />
         </div>
       </div>
+
+      <DashboardChartsSection />
 
       <NpsCard />
     </div>
