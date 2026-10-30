@@ -3,6 +3,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -42,7 +43,7 @@ export function SupplierSheet({
             Satın alma kayıtlarında kullanacağınız tedarikçi bilgilerini girin.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-1">
+        <DialogBody className="space-y-4 py-1">
           <FormField label="Ad" required>
             {(field) => (
               <Input
@@ -96,7 +97,7 @@ export function SupplierSheet({
               />
             )}
           </FormField>
-        </div>
+        </DialogBody>
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             İptal

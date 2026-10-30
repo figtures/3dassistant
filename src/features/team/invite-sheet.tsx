@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
+  nativeSelectClassName,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -18,9 +20,6 @@ import {
   WORKSPACE_ROLE_LABELS,
 } from "@/lib/workspace/role-labels";
 import type { WorkspaceRole } from "@/types/database";
-
-const selectClassName =
-  "flex h-[var(--density-control-h)] w-full rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
 
 export type InviteSheetProps = {
   open: boolean;
@@ -67,7 +66,7 @@ export function InviteSheet({ open, onOpenChange, onSent }: InviteSheetProps) {
             Davet edilen kişi e-postasındaki bağlantı ile katılır. Davet 7 gün geçerlidir.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-1">
+        <DialogBody className="space-y-4 py-1">
           <FormField label="E-posta" required>
             {(field) => (
               <Input
@@ -84,7 +83,7 @@ export function InviteSheet({ open, onOpenChange, onSent }: InviteSheetProps) {
             {(field) => (
               <select
                 {...field}
-                className={selectClassName}
+                className={nativeSelectClassName}
                 value={role}
                 onChange={(e) =>
                   setRole(e.target.value as Exclude<WorkspaceRole, "owner">)
@@ -98,7 +97,7 @@ export function InviteSheet({ open, onOpenChange, onSent }: InviteSheetProps) {
               </select>
             )}
           </FormField>
-        </div>
+        </DialogBody>
         <DialogFooter>
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Vazgeç

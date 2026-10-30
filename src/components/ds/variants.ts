@@ -3,6 +3,17 @@ import type { UiMachineState } from "@/lib/machine-state";
 const focusRing =
   "focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
 
+const fieldFocusRing =
+  "focus-visible:outline-none focus-visible:border-[color-mix(in_oklab,var(--ring)_55%,var(--input))] focus-visible:shadow-[var(--focus-ring-inset)]";
+
+/** Native `<select>` in v2 forms — matches Input styling */
+export const nativeSelectClassName = [
+  "flex h-[var(--density-control-h)] w-full appearance-none rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground",
+  "transition-colors duration-[var(--motion-fast,120ms)]",
+  "disabled:cursor-not-allowed disabled:opacity-50",
+  fieldFocusRing,
+].join(" ");
+
 type VariantOptions<V extends Record<string, Record<string, string>>> = {
   [K in keyof V]?: keyof V[K] | null | undefined;
 };
@@ -64,7 +75,7 @@ export const inputVariants = variantBuilder(
     "transition-colors duration-[var(--motion-fast,120ms)]",
     "disabled:cursor-not-allowed disabled:opacity-50",
     "aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/30",
-    focusRing,
+    fieldFocusRing,
   ].join(" "),
   {
     size: {

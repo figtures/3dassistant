@@ -38,16 +38,22 @@ function formatUpdatedAt(iso: string): string {
 export function SupportV2() {
   const { openReport } = useSupportReport();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [tickets, setTickets] = useState<TicketRow[]>([]);
 
   useEffect(() => {
     void (async () => {
       try {
         const res = await fetch("/api/support/tickets");
-        if (res.ok) {
-          const body = await res.json();
-          setTickets(body.tickets ?? []);
+        if (!res.ok) {
+          setLoadError("Talepler yüklenemedi. Sayfayı yenileyin veya Sorun bildir ile yazın.");
+          return;
         }
+        const body = await res.json();
+        setTickets(body.tickets ?? []);
+        setLoadError(null);
+      } catch {
+        setLoadError("Bağlantı hatası. İnternetinizi kontrol edip tekrar deneyin.");
       } finally {
         setLoading(false);
       }
@@ -81,6 +87,17 @@ export function SupportV2() {
           <Skeleton className="h-10 w-full rounded-xl" />
           <Skeleton className="h-10 w-full rounded-xl" />
         </div>
+      ) : loadError ? (
+        <EmptyState
+          icon={LifeBuoy}
+          title="Talepler yüklenemedi"
+          description={loadError}
+          action={
+            <Button type="button" variant="secondary" onClick={() => window.location.reload()}>
+              Yenile
+            </Button>
+          }
+        />
       ) : tickets.length === 0 ? (
         <EmptyState
           icon={LifeBuoy}

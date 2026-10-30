@@ -2,8 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@/components/ui/modal";
+import {
+  Button,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ds";
 import { ChevronDown, Cloud, Download, ExternalLink, Loader2, Lock, Radio, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useEntitlements } from "@/hooks/use-entitlements";
@@ -152,43 +160,48 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
         : "Kurulumu indir";
 
   return (
-    <Modal open={open} onOpenChange={handleOpenChange}>
-      <ModalContent className="max-w-lg">
-        <ModalHeader
-          title="Atölye köprüsü"
-          subtitle="Tek masaüstü kurulum — yazıcılar yerel ağda otomatik bulunur"
-        />
-        <ModalBody className="space-y-4 text-sm text-zinc-300">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent size="md" className="max-sm:max-h-[95dvh]">
+        <DialogHeader>
+          <DialogTitle>Atölye köprüsü</DialogTitle>
+          <DialogDescription>
+            Tek masaüstü kurulum — yazıcılar yerel ağda otomatik bulunur
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className="space-y-4 text-sm text-muted-foreground">
           {!cloudAllowed ? (
-            <div className="space-y-2 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-4">
-              <p className="flex items-center gap-2 font-medium text-zinc-100">
-                <Lock className="h-4 w-4 text-sky-400" /> Canlı takip planınızda yok
+            <div className="space-y-2 rounded-xl border border-info/30 bg-info-subtle p-4">
+              <p className="flex items-center gap-2 font-medium text-foreground">
+                <Lock className="h-4 w-4 text-info" aria-hidden /> Canlı takip planınızda yok
               </p>
-              <Link href="/billing?reason=cloud" className="text-sky-400 hover:text-sky-300">
+              <Link
+                href="/billing?reason=cloud"
+                className="text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
+              >
                 Atölye veya Filament Farm planına geçin →
               </Link>
             </div>
           ) : (
             <>
-              <p className="text-zinc-400">
-                <strong className="text-zinc-200">3D Asisstant Bridge</strong> atölye PC’de arka planda
+              <p>
+                <strong className="text-foreground">3D Asisstant Bridge</strong> atölye PC’de arka planda
                 çalışır. Chrome, Firefox veya Edge için ayrı kurulum yok — ERP’ye hangi tarayıcıdan
                 girerseniz girin aynı makine kartı güncellenir.
               </p>
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+              <div className="rounded-xl border border-border bg-surface-2/80 p-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   1 — Kurulumu indir
                 </p>
 
                 {detection && (
-                  <p className="mb-3 text-xs text-zinc-400">
+                  <p className="mb-3 text-xs text-muted-foreground">
                     {detection.status === "known" ? (
                       <>
                         Algılanan sistem:{" "}
-                        <span className="font-medium text-zinc-200">{detection.label}</span>
+                        <span className="font-medium text-foreground">{detection.label}</span>
                         {detection.macAmbiguous && (
-                          <span className="mt-1 block text-[11px] text-zinc-500">
+                          <span className="mt-1 block text-[11px] text-muted-foreground">
                             Intel Mac kullanıyorsanız aşağıdan &quot;Diğer platformlar&quot; ile Intel
                             sürümünü seçin.
                           </span>
@@ -203,14 +216,14 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                 )}
 
                 {!installersPublished && downloads.length === 0 ? (
-                  <p className="text-xs text-amber-200/90">
+                  <p className="text-xs text-warning">
                     Installer henüz yayında değil.{" "}
-                    <Link href="/support?topic=bridge" className="text-sky-400 hover:text-sky-300">
+                    <Link href="/support?topic=bridge" className="text-primary hover:text-primary-hover">
                       Destek talebi oluşturun
                     </Link>
                   </p>
                 ) : downloads.length === 0 ? (
-                  <p className="text-xs text-zinc-500">İndirme listesi yükleniyor…</p>
+                  <p className="text-xs text-muted-foreground">İndirme listesi yükleniyor…</p>
                 ) : (
                   <>
                     <Button
@@ -227,18 +240,18 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                       {primaryButtonLabel}
                     </Button>
                     {primaryDownload && (
-                      <p className="mt-2 text-[11px] text-zinc-600">
-                        Dosya: <span className="text-zinc-500">{primaryDownload.filename}</span>
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        Dosya: <span className="text-foreground/80">{primaryDownload.filename}</span>
                       </p>
                     )}
                   </>
                 )}
 
                 {downloads.length > 0 && (
-                  <div className="mt-3 border-t border-zinc-800/80 pt-3">
+                  <div className="mt-3 border-t border-border pt-3">
                     <button
                       type="button"
-                      className="flex w-full items-center justify-between text-xs text-zinc-500 hover:text-zinc-400"
+                      className="flex w-full items-center justify-between text-xs text-muted-foreground hover:text-foreground"
                       onClick={() => setShowOtherPlatforms((v) => !v)}
                     >
                       Diğer platformlar
@@ -252,7 +265,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                           <li key={d.platform}>
                             <a
                               href={d.url}
-                              className="flex items-center gap-2 text-sky-400 hover:text-sky-300"
+                              className="flex items-center gap-2 text-primary hover:text-primary-hover"
                               target="_blank"
                               rel="noopener noreferrer"
                             >
@@ -266,35 +279,35 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                   </div>
                 )}
 
-                <p className="mt-2 text-[11px] text-zinc-600">
+                <p className="mt-2 text-[11px] text-muted-foreground">
                   Sorun mu yaşıyorsunuz?{" "}
-                  <Link href="/support?topic=bridge" className="text-sky-400 hover:text-sky-300">
+                  <Link href="/support?topic=bridge" className="text-primary hover:text-primary-hover">
                     Kurulum rehberi
                   </Link>
                   {" · "}
-                  <Link href="/support?topic=bridge&report=1" className="text-sky-400 hover:text-sky-300">
+                  <Link href="/support?topic=bridge&report=1" className="text-primary hover:text-primary-hover">
                     Destek paketini gönder
                   </Link>
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+              <div className="rounded-xl border border-border bg-surface-2/80 p-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   2 — Kodu oluşturun, köprüyü açın
                 </p>
-                <p className="flex items-start gap-2 text-zinc-400">
-                  <Search className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+                <p className="flex items-start gap-2">
+                  <Search className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                   <span>
-                    Köprü aynı ağdaki yazıcıları <strong className="text-zinc-200">otomatik bulur</strong>;
+                    Köprü aynı ağdaki yazıcıları <strong className="text-foreground">otomatik bulur</strong>;
                     listeden seçmeniz yeterli. IP adresi veya seri numarası girmeniz gerekmez.
                   </span>
                 </p>
                 {cloudAllowed && (
-                  <p className="mt-2 flex items-start gap-2 text-xs text-zinc-500">
-                    <Cloud className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-500/80" />
+                  <p className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                    <Cloud className="mt-0.5 h-3.5 w-3.5 shrink-0 text-info" aria-hidden />
                     <span>
                       Bambu yazıcı bulut modundaysa erişim kodu girmek zorunda değilsiniz: üstteki{" "}
-                      <strong className="text-zinc-400">Yazıcıları bağla</strong> ile Bambu hesabınızı
+                      <strong className="text-foreground">Yazıcıları bağla</strong> ile Bambu hesabınızı
                       bağlayın; telemetri buluttan gelir (atölye köprüsü gerekmez). Köprü kullanacaksanız
                       Bambu Studio oturumu veya yazıcı ekranındaki kod yeterlidir.
                     </span>
@@ -305,7 +318,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                     <span
                       key={v}
                       title={BRIDGE_LAN_HINTS[v].discovery}
-                      className="rounded-full border border-zinc-800 bg-zinc-950/40 px-2 py-0.5 text-[11px] text-zinc-400"
+                      className="rounded-full border border-border bg-surface-inset px-2 py-0.5 text-[11px] text-muted-foreground"
                     >
                       {BRIDGE_VENDOR_LABELS[v]}
                     </span>
@@ -314,7 +327,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
 
                 <button
                   type="button"
-                  className="mt-3 flex w-full items-center justify-between text-xs text-zinc-500 hover:text-zinc-400"
+                  className="mt-3 flex w-full items-center justify-between text-xs text-muted-foreground hover:text-foreground"
                   onClick={() => setShowVendorNotes((v) => !v)}
                 >
                   Bazı yazıcılarda bir kez sorulanlar
@@ -323,10 +336,10 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                   />
                 </button>
                 {showVendorNotes && (
-                  <ul className="mt-2 space-y-1.5 text-xs text-zinc-500">
+                  <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                     {BRIDGE_VENDORS.filter((v) => BRIDGE_LAN_HINTS[v].userInput).map((v) => (
                       <li key={v}>
-                        <strong className="text-zinc-300">{BRIDGE_VENDOR_LABELS[v]}:</strong>{" "}
+                        <strong className="text-foreground">{BRIDGE_VENDOR_LABELS[v]}:</strong>{" "}
                         {BRIDGE_LAN_HINTS[v].userInput}
                       </li>
                     ))}
@@ -339,26 +352,26 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
               </div>
 
               {code ? (
-                <div className="rounded-2xl border border-emerald-800/50 bg-emerald-950/20 p-4 text-center">
-                  <p className="text-xs text-zinc-500">Eşleştirme kodu (15 dk)</p>
-                  <p className="mt-1 font-mono text-3xl font-semibold tracking-widest text-emerald-300">
+                <div className="rounded-xl border border-success/40 bg-success-subtle p-4 text-center">
+                  <p className="text-xs text-muted-foreground">Eşleştirme kodu (15 dk)</p>
+                  <p className="mt-1 font-mono text-3xl font-semibold tracking-widest text-success">
                     {code}
                   </p>
                   {expiresAt && (
-                    <p className="mt-2 text-xs text-zinc-500">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       Geçerlilik: {new Date(expiresAt).toLocaleTimeString("tr-TR")}
                     </p>
                   )}
                   {deepLink && (
                     <a
                       href={deepLink}
-                      className="mt-3 inline-flex items-center gap-1 text-sm text-emerald-400 hover:text-emerald-300"
+                      className="mt-3 inline-flex items-center gap-1 text-sm text-success hover:text-success/90"
                     >
                       <ExternalLink className="h-4 w-4" />
                       Köprüyü aç (printflow://)
                     </a>
                   )}
-                  <p className="mt-3 text-left text-xs text-zinc-500">
+                  <p className="mt-3 text-left text-xs text-muted-foreground">
                     Köprü bulduğu yazıcıları listeler; bu kodla 15 dk içinde birden fazla yazıcı
                     seçebilirsiniz. Sonradan yazıcı eklemek için yeni kod üretin.
                   </p>
@@ -370,23 +383,23 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                 </Button>
               )}
 
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-muted-foreground">
                 Erişim kodu, şifre ve API anahtarları yalnızca atölye bilgisayarında kalır; sunucuya
                 gönderilmez. Sorun yaşarsanız köprüden destek paketi gönderin veya panelden{" "}
-                <Link href="/support?topic=bridge&report=1" className="text-sky-400 hover:text-sky-300">
+                <Link href="/support?topic=bridge&report=1" className="text-primary hover:text-primary-hover">
                   Sorun bildir
                 </Link>
                 .
               </p>
             </>
           )}
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
+        </DialogBody>
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
             Kapat
           </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

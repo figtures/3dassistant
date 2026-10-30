@@ -13,7 +13,7 @@ export default async function SettingsLayout({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-4 pb-8 lg:flex-row lg:gap-10">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-8 lg:flex-row lg:gap-10">
       <SettingsSubnav />
       <div className="min-w-0 flex-1">{children}</div>
     </div>

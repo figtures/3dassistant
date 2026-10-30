@@ -223,6 +223,8 @@
 /* Focus & z-index */
 :root {
   --focus-ring: 0 0 0 2px var(--ring-offset), 0 0 0 4px var(--ring);
+  /* Form controls inside overflow-hidden panels — inset ring avoids clipping */
+  --focus-ring-inset: inset 0 0 0 2px var(--ring);
   --z-base: 0;
   --z-sticky: 20;
   --z-header: 30;

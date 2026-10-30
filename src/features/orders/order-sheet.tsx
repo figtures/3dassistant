@@ -19,6 +19,7 @@ import type { Job } from "@/types/database";
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -344,7 +345,7 @@ export function OrderSheet({
               : "Sipariş bilgilerini kaydedin."}
           </DialogDescription>
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 py-1">
+        <DialogBody className="py-3">
           {jobLoading && !isNew ? (
             <p className="text-sm text-muted-foreground">Yükleniyor…</p>
           ) : (
@@ -400,7 +401,7 @@ export function OrderSheet({
               readOnly={!canEditOrders}
             />
           )}
-        </div>
+        </DialogBody>
         <DialogFooter className="gap-2 sm:justify-between">
           {!isNew && canEditOrders ? (
             <div className="flex flex-wrap items-center gap-1">

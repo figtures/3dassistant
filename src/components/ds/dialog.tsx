@@ -95,7 +95,23 @@ export function DialogHeader({
     <div
       data-slot="dialog-header"
       className={cn(
-        "flex flex-col gap-1.5 border-b border-border px-5 py-4 pr-14",
+        "flex shrink-0 flex-col gap-1.5 border-b border-border px-5 py-4 pr-14",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DialogBody({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      data-slot="dialog-body"
+      className={cn(
+        "min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4",
         className
       )}
       {...props}
@@ -111,7 +127,7 @@ export function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 border-t border-border bg-popover px-5 py-4 sm:flex-row sm:justify-end",
+        "flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-popover px-5 py-4 sm:flex-row sm:justify-end",
         "pb-[max(1rem,env(safe-area-inset-bottom))]",
         className
       )}

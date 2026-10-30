@@ -3,6 +3,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -10,14 +11,12 @@ import {
   DialogTitle,
   FormField,
   Input,
+  nativeSelectClassName,
   Textarea,
 } from "@/components/ds";
 import { VoiceParsePanel } from "@/components/ui/voice-parse-panel";
 import type { VoiceFieldConfidence } from "@/lib/voice-confidence";
 import { CUSTOMER_SOURCES, type Customer } from "@/types/database";
-
-const selectClassName =
-  "flex h-[var(--density-control-h)] w-full rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
 
 export type CustomerFormValues = {
   name: string;
@@ -65,14 +64,14 @@ export function CustomerSheet({
 }: CustomerSheetProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+      <DialogContent size="lg" className="max-sm:max-h-[95dvh]">
         <DialogHeader>
           <DialogTitle>{editing ? "Müşteri düzenle" : "Yeni müşteri"}</DialogTitle>
           <DialogDescription>
             İletişim bilgilerini kaydedin; sipariş ve tahsilat geçmişi bu kayda bağlanır.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[min(60vh,520px)] space-y-4 overflow-y-auto overscroll-contain py-1">
+        <DialogBody className="space-y-4 py-1">
           <VoiceParsePanel
             isSupported={voice.isSupported}
             isListening={voice.isListening}
@@ -143,7 +142,7 @@ export function CustomerSheet({
                   {...field}
                   value={form.source}
                   onChange={(e) => onFormChange({ ...form, source: e.target.value })}
-                  className={selectClassName}
+                  className={nativeSelectClassName}
                 >
                   <option value="">Seçin…</option>
                   {CUSTOMER_SOURCES.map((s) => (
@@ -173,7 +172,7 @@ export function CustomerSheet({
                 onChange={(e) =>
                   onFormChange({ ...form, referred_by_customer_id: e.target.value })
                 }
-                className={selectClassName}
+                className={nativeSelectClassName}
               >
                 <option value="">Seçin…</option>
                 {customers
@@ -186,7 +185,7 @@ export function CustomerSheet({
               </select>
             )}
           </FormField>
-        </div>
+        </DialogBody>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Vazgeç

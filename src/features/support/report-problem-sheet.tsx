@@ -3,6 +3,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -30,7 +31,7 @@ export function ReportProblemSheet({ open, onOpenChange, form }: ReportProblemSh
           <DialogTitle>Sorun bildir</DialogTitle>
           <DialogDescription>Teknik ekibe bildirim gönderin</DialogDescription>
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+        <DialogBody>
           <SupportReportFormFields
             form={form}
             variant="v2"
@@ -40,7 +41,7 @@ export function ReportProblemSheet({ open, onOpenChange, form }: ReportProblemSh
               <Label className={className}>{children}</Label>
             )}
           />
-        </div>
+        </DialogBody>
         <DialogFooter className="gap-3 sm:flex-row sm:items-center sm:justify-between">
           <a
             href={form.mailto}

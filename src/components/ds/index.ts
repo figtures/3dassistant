@@ -36,11 +36,14 @@ export {
   DialogOverlay,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogFooter,
   DialogTitle,
   DialogDescription,
   type DialogContentProps,
 } from "@/components/ds/dialog";
+
+export { nativeSelectClassName } from "@/components/ds/variants";
 export {
   ConfirmDialog,
   type ConfirmDialogProps,

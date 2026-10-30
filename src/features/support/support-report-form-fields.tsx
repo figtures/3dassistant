@@ -5,10 +5,8 @@ import { SUPPORT_CATEGORY_OPTIONS } from "@/lib/support/categories";
 import type { SupportCategory } from "@/lib/support/types";
 import type { SupportReportFormState } from "@/features/support/use-support-report-form";
 import { ChevronDown } from "lucide-react";
+import { nativeSelectClassName } from "@/components/ds";
 import { cn } from "@/lib/utils";
-
-const selectClassName =
-  "flex h-[var(--density-control-h)] w-full rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
 
 type FieldVariant = "legacy" | "v2";
 
@@ -38,7 +36,7 @@ export function SupportReportFormFields({ form, variant, Input, Textarea, Label 
         <Label>Kategori</Label>
         {isV2 ? (
           <select
-            className={selectClassName}
+            className={nativeSelectClassName}
             value={form.category}
             onChange={(e) => form.setCategory(e.target.value as SupportCategory)}
           >
@@ -84,7 +82,7 @@ export function SupportReportFormFields({ form, variant, Input, Textarea, Label 
           <Label>İlgili makine (isteğe bağlı)</Label>
           {isV2 ? (
             <select
-              className={selectClassName}
+              className={nativeSelectClassName}
               value={form.machineId}
               onChange={(e) => form.setMachineId(e.target.value)}
             >

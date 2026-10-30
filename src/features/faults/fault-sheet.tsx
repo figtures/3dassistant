@@ -3,6 +3,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -10,6 +11,7 @@ import {
   DialogTitle,
   FormField,
   Input,
+  nativeSelectClassName,
   Textarea,
 } from "@/components/ds";
 import { VoiceParsePanel } from "@/components/ui/voice-parse-panel";
@@ -18,9 +20,6 @@ import type { FaultFormValues } from "@/features/faults/fault-mutations";
 import type { VoiceFieldConfidence } from "@/lib/voice-confidence";
 import type { VoiceParseSource } from "@/lib/voice-parse-client";
 import type { FaultType, Machine } from "@/types/database";
-
-const selectClassName =
-  "flex h-[var(--density-control-h)] w-full rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
 
 export type FaultSheetProps = {
   open: boolean;
@@ -63,14 +62,14 @@ export function FaultSheet({
 }: FaultSheetProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+      <DialogContent size="lg" className="max-sm:max-h-[95dvh]">
         <DialogHeader>
           <DialogTitle>{editing ? "Arıza düzenle" : "Yeni arıza"}</DialogTitle>
           <DialogDescription>
             Makine duruşlarını kaydedin; sesli not ile alanları hızlıca doldurabilirsiniz.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[min(60dvh,520px)] space-y-4 overflow-y-auto py-1">
+        <DialogBody className="space-y-4 py-1">
           <VoiceParsePanel
             isSupported={voice.isSupported}
             isListening={voice.isListening}
@@ -88,7 +87,7 @@ export function FaultSheet({
               {(field) => (
                 <select
                   {...field}
-                  className={selectClassName}
+                  className={nativeSelectClassName}
                   value={form.machine_id}
                   onChange={(e) => onFormChange({ ...form, machine_id: e.target.value })}
                 >
@@ -117,7 +116,7 @@ export function FaultSheet({
               {(field) => (
                 <select
                   {...field}
-                  className={selectClassName}
+                  className={nativeSelectClassName}
                   value={form.fault_type_id}
                   onChange={(e) => {
                     const t = typeOptions.find((x) => x.id === e.target.value);
@@ -165,7 +164,7 @@ export function FaultSheet({
               {(field) => (
                 <select
                   {...field}
-                  className={selectClassName}
+                  className={nativeSelectClassName}
                   value={form.status}
                   onChange={(e) =>
                     onFormChange({ ...form, status: e.target.value as FaultFormValues["status"] })
@@ -190,7 +189,7 @@ export function FaultSheet({
               />
             )}
           </FormField>
-        </div>
+        </DialogBody>
         <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
           {editing && onSetMaintenance ? (
             <Button

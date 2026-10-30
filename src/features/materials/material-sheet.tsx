@@ -3,6 +3,7 @@
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -55,7 +56,7 @@ export function MaterialSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+      <DialogContent size="lg" className="max-sm:max-h-[95dvh]">
         <DialogHeader>
           <DialogTitle>{editing ? "Malzeme düzenle" : "Yeni malzeme"}</DialogTitle>
           <DialogDescription>
@@ -63,7 +64,7 @@ export function MaterialSheet({
             toplanır.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[min(60dvh,520px)] space-y-4 overflow-y-auto py-1">
+        <DialogBody className="space-y-4 py-1">
           <FormField label="Malzeme adı" required>
             {(field) => (
               <Input
@@ -236,7 +237,7 @@ export function MaterialSheet({
               ))}
             </div>
           </div>
-        </div>
+        </DialogBody>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
             onClick={onSave}

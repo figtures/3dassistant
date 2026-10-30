@@ -2,6 +2,7 @@
 
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -39,15 +40,16 @@ export function ShortcutsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="sm" className="max-h-[85vh] overflow-y-auto">
+      <DialogContent size="sm" className="max-sm:max-h-[90dvh]">
         <DialogHeader>
           <DialogTitle>Klavye kısayolları</DialogTitle>
         </DialogHeader>
+        <DialogBody className="space-y-5 pt-0">
         <p className="text-sm text-muted-foreground">
           Metin alanlarında kısayollar devre dışıdır. Klavye kısayollarını
           Görünüm ayarlarından kapatabilirsiniz (erişilebilirlik).
         </p>
-        <div className="mt-4 space-y-5">
+        <div className="space-y-5">
           {byGroup.map(({ group, label, rows: groupRows }) =>
             groupRows.length ? (
               <section key={group}>
@@ -71,6 +73,7 @@ export function ShortcutsDialog({
             ) : null
           )}
         </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );
