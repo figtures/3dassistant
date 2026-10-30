@@ -22,6 +22,7 @@ export type OrdersTableProps = {
   onStatusChange: (job: Job, status: JobStatus) => void;
   showFinance?: boolean;
   canEdit?: boolean;
+  focusedJobId?: string | null;
 };
 
 export function OrdersTable({
@@ -37,6 +38,7 @@ export function OrdersTable({
   onStatusChange,
   showFinance = true,
   canEdit = true,
+  focusedJobId = null,
 }: OrdersTableProps) {
   const headers = [
     "Sipariş",
@@ -89,7 +91,9 @@ export function OrdersTable({
                     key={job.id}
                     className={cn(
                       "cursor-pointer border-b border-border/60 transition-colors hover:bg-surface-2/50",
-                      selectedIds.has(job.id) && "bg-primary-subtle/30"
+                      selectedIds.has(job.id) && "bg-primary-subtle/30",
+                      focusedJobId === job.id &&
+                        "ring-2 ring-inset ring-primary/40 bg-surface-2/40"
                     )}
                     onClick={() => onRowClick(job)}
                   >

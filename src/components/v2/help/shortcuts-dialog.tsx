@@ -6,17 +6,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ds/dialog";
-import { getCommandShortcutLabel } from "@/components/v2/command/use-command-shortcut";
+import {
+  getShortcutDisplayRows,
+  type ShortcutDisplayRow,
+} from "@/lib/shortcuts/registry";
 
-const SHORTCUT_ROWS: Array<{ keys: string; label: string }> = [
-  { keys: getCommandShortcutLabel(), label: "Komut paleti" },
-  { keys: "/", label: "Sayfa içi aramaya odaklan" },
-  { keys: "?", label: "Klavye kısayolları" },
-  { keys: "G → D", label: "Genel Bakış" },
-  { keys: "G → O", label: "Siparişler" },
-  { keys: "G → P", label: "Planlama" },
-  { keys: "G → M", label: "Makineler" },
-  { keys: "Esc", label: "Kapat / seçimi temizle" },
+const GROUP_LABELS: Record<ShortcutDisplayRow["group"], string> = {
+  genel: "Genel",
+  gezinme: "Gezinme (G sonra…)",
+  tablo: "Tablolar",
+};
+
+const GROUP_ORDER: ShortcutDisplayRow["group"][] = [
+  "genel",
+  "gezinme",
+  "tablo",
 ];
 
 export function ShortcutsDialog({
@@ -26,6 +30,13 @@ export function ShortcutsDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const rows = getShortcutDisplayRows();
+  const byGroup = GROUP_ORDER.map((group) => ({
+    group,
+    label: GROUP_LABELS[group],
+    rows: rows.filter((r) => r.group === group),
+  }));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="sm" className="max-h-[85vh] overflow-y-auto">
@@ -33,21 +44,33 @@ export function ShortcutsDialog({
           <DialogTitle>Klavye kısayolları</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Metin alanlarında kısayollar devre dışıdır. Tam liste ayarlarda genişletilecektir.
+          Metin alanlarında kısayollar devre dışıdır. Klavye kısayollarını
+          Görünüm ayarlarından kapatabilirsiniz (erişilebilirlik).
         </p>
-        <ul className="mt-4 divide-y divide-border rounded-lg border border-border">
-          {SHORTCUT_ROWS.map((row) => (
-            <li
-              key={row.label}
-              className="flex items-center justify-between gap-4 px-3 py-2.5 text-sm"
-            >
-              <span className="text-foreground">{row.label}</span>
-              <kbd className="shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 font-sans text-xs text-foreground">
-                {row.keys}
-              </kbd>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-4 space-y-5">
+          {byGroup.map(({ group, label, rows: groupRows }) =>
+            groupRows.length ? (
+              <section key={group}>
+                <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {label}
+                </h3>
+                <ul className="divide-y divide-border rounded-lg border border-border">
+                  {groupRows.map((row) => (
+                    <li
+                      key={row.id}
+                      className="flex items-center justify-between gap-4 px-3 py-2.5 text-sm"
+                    >
+                      <span className="text-foreground">{row.label}</span>
+                      <kbd className="shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 font-sans text-xs text-foreground">
+                        {row.keys}
+                      </kbd>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

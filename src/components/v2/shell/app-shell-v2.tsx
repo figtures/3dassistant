@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { useHelpShortcutsListener } from "@/components/v2/help/help-menu";
+import { useShortcutRoot } from "@/hooks/use-shortcut";
 import { cn } from "@/lib/utils";
 import {
   SIDEBAR_COOKIE,
@@ -50,7 +50,7 @@ export function AppShellV2({
   const [paletteOpen, setPaletteOpen, paletteEverOpened] = useCommandShortcut();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const openShortcuts = useCallback(() => setShortcutsOpen(true), []);
-  useHelpShortcutsListener(openShortcuts);
+  useShortcutRoot({ onShowShortcuts: openShortcuts });
   const badges = useNavBadges();
   const isAdmin = isSupportAdmin;
 

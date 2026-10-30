@@ -437,6 +437,7 @@ function CustomersV2Content() {
             aria-hidden
           />
           <Input
+            data-page-search
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);

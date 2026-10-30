@@ -158,22 +158,3 @@ export function HelpMenu({ shortcutsOpen, onShortcutsOpenChange }: HelpMenuProps
   );
 }
 
-export function useHelpShortcutsListener(onOpen: () => void) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key !== "?" || e.metaKey || e.ctrlKey || e.altKey) return;
-      const target = e.target as HTMLElement | null;
-      if (
-        target?.closest(
-          "input, textarea, select, [contenteditable='true'], [contenteditable='']"
-        )
-      ) {
-        return;
-      }
-      e.preventDefault();
-      onOpen();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onOpen]);
-}

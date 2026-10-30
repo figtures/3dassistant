@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -51,6 +51,7 @@ import { toast } from "sonner";
 import { SavedViewsToolbar } from "@/components/ds/data-table/saved-views";
 import { TableExportMenu } from "@/components/ds/data-table/table-export-menu";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
+import { useShortcutHandlers } from "@/hooks/use-shortcut";
 import { useTenantId } from "@/components/workspace/workspace-provider";
 import {
   fetchAllOrderIdsForFilter,
@@ -121,6 +122,8 @@ function OrdersV2Content() {
 
   const [searchInput, setSearchInput] = useState(q);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { data: machines = [] } = useMachines();
   const { data: customers = [] } = useCustomers();
@@ -155,6 +158,7 @@ function OrdersV2Content() {
 
   useEffect(() => {
     setSelectedIds(new Set());
+    setFocusedRowIndex(null);
   }, [
     tab,
     q,
@@ -167,6 +171,15 @@ function OrdersV2Content() {
     statusFilter,
     paymentFilter,
   ]);
+
+  function toggleSelectId(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const allPageSelected =
     rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
@@ -188,6 +201,55 @@ function OrdersV2Content() {
   function closeSheet() {
     patchUrl({ order: null });
   }
+
+  useShortcutHandlers({
+    onFocusPageSearch: () => searchInputRef.current?.focus(),
+    onNewRecord: () => {
+      if (!canEditOrders) return;
+      patchUrl({ order: "new" });
+    },
+    onTableNext: () => {
+      if (!tableEnabled || rows.length === 0) return;
+      setFocusedRowIndex((idx) => {
+        if (idx == null) return 0;
+        return Math.min(idx + 1, rows.length - 1);
+      });
+    },
+    onTablePrev: () => {
+      if (!tableEnabled || rows.length === 0) return;
+      setFocusedRowIndex((idx) => {
+        if (idx == null) return rows.length - 1;
+        return Math.max(idx - 1, 0);
+      });
+    },
+    onTableToggleSelect: () => {
+      if (!tableEnabled || !canEditOrders) return;
+      const idx = focusedRowIndex ?? 0;
+      const job = rows[idx];
+      if (job) toggleSelectId(job.id);
+    },
+    onTableEdit: () => {
+      if (!tableEnabled || !canEditOrders) return;
+      const fromFocus =
+        focusedRowIndex != null ? rows[focusedRowIndex] : undefined;
+      const fromSelection = rows.find((r) => selectedIds.has(r.id));
+      const job = fromFocus ?? fromSelection;
+      if (job) openOrder(job.id);
+    },
+    onEscape: () => {
+      if (sheetOpen) {
+        closeSheet();
+        return;
+      }
+      if (selectedIds.size > 0) {
+        setSelectedIds(new Set());
+        return;
+      }
+      if (focusedRowIndex != null) {
+        setFocusedRowIndex(null);
+      }
+    },
+  });
 
   async function handleDelete(job: Job) {
     const ok = await confirmAction({
@@ -537,6 +599,8 @@ function OrdersV2Content() {
             aria-hidden
           />
           <Input
+            ref={searchInputRef}
+            data-page-search
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onBlur={() => patchUrl({ q: searchInput.trim() || null, page: "1" })}
@@ -684,6 +748,9 @@ function OrdersV2Content() {
             onStatusChange={(job, status) => void handleStatusChange(job, status)}
             showFinance={showFinance}
             canEdit={canEditOrders}
+            focusedJobId={
+              focusedRowIndex != null ? (rows[focusedRowIndex]?.id ?? null) : null
+            }
           />
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
             <span>

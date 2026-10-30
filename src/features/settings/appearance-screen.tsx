@@ -14,7 +14,10 @@ import {
 } from "@/lib/shell/density-cookie";
 import { cn } from "@/lib/utils";
 
-const SHORTCUTS_PREF_KEY = "pf.shortcuts.enabled";
+import {
+  SHORTCUTS_PREF_KEY,
+  writeShortcutsEnabled,
+} from "@/lib/shortcuts/registry";
 
 function readDensityFromDom(): UiDensity {
   if (typeof document === "undefined") return "comfortable";
@@ -59,7 +62,7 @@ export function AppearanceSettingsScreen() {
   function save() {
     setSaving(true);
     applyDensity(density);
-    localStorage.setItem(SHORTCUTS_PREF_KEY, shortcutsEnabled ? "1" : "0");
+    writeShortcutsEnabled(shortcutsEnabled);
     setInitialDensity(density);
     setInitialShortcuts(shortcutsEnabled);
     setSaving(false);
