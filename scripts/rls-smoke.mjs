@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Workspace RLS ve backfill doğrulaması (P3-01+).
+ * Workspace RLS ve backfill doğrulaması (P3-01, P3-02).
  *
  *   set -a && source .env.local && set +a
  *   node scripts/rls-smoke.mjs
@@ -137,6 +137,54 @@ async function checkUserIsolation(email, password, otherUserId) {
   ok(`RLS izolasyon (${email})`);
 }
 
+/** P3-02: üyelik açılınca kiracı verisi görünür, çıkınca kaybolur */
+async function checkWorkspaceMemberDataAccess(workspaceOwnerId, memberEmail, memberPassword) {
+  const { client: memberClient, userId: memberId } = await signInClient(memberEmail, memberPassword);
+
+  const { count: beforeCount, error: beforeErr } = await memberClient
+    .from("materials")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", workspaceOwnerId);
+  if (beforeErr) fail(`materials (üye değilken) ${memberEmail}: ${beforeErr.message}`);
+  if ((beforeCount ?? 0) !== 0) {
+    fail(`${memberEmail} üye değilken workspace ${workspaceOwnerId} malzemelerini gördü (${beforeCount})`);
+  }
+
+  const { error: addErr } = await admin.from("workspace_members").insert({
+    workspace_id: workspaceOwnerId,
+    user_id: memberId,
+    role: "viewer",
+  });
+  if (addErr) fail(`workspace_members insert: ${addErr.message}`);
+
+  const { count: memberCount, error: memberErr } = await memberClient
+    .from("materials")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", workspaceOwnerId);
+  if (memberErr) fail(`materials (üyeyken) ${memberEmail}: ${memberErr.message}`);
+  if ((memberCount ?? 0) === 0) {
+    fail(`${memberEmail} viewer üyeliğiyle malzeme göremedi (migration 030 uygulandı mı?)`);
+  }
+
+  const { error: delErr } = await admin
+    .from("workspace_members")
+    .delete()
+    .eq("workspace_id", workspaceOwnerId)
+    .eq("user_id", memberId);
+  if (delErr) fail(`workspace_members delete: ${delErr.message}`);
+
+  const { count: afterCount, error: afterErr } = await memberClient
+    .from("materials")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", workspaceOwnerId);
+  if (afterErr) fail(`materials (üyelik sonrası) ${memberEmail}: ${afterErr.message}`);
+  if ((afterCount ?? 0) !== 0) {
+    fail(`${memberEmail} üyelikten çıktıktan sonra hâlâ ${afterCount} malzeme görüyor`);
+  }
+
+  ok(`P3-02 üyelik RLS (${memberEmail} ↔ workspace ${workspaceOwnerId.slice(0, 8)}…)`);
+}
+
 const emailA =
   process.env.RLS_SMOKE_USER_A_EMAIL ||
   process.env.E2E_EMAIL ||
@@ -167,6 +215,7 @@ if (emailA && passwordA) {
   await checkUserIsolation(emailA, passwordA, userBId);
   if (emailB && passwordB && userAId) {
     await checkUserIsolation(emailB, passwordB, userAId);
+    await checkWorkspaceMemberDataAccess(userAId, emailB, passwordB);
   }
 } else {
   console.log("ℹ E2E_EMAIL/E2E_PASSWORD yok — yalnızca backfill kontrolü yapıldı");
