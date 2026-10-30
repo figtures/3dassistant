@@ -38,6 +38,31 @@ function fetchPathOnly(url: string): string {
   }
 }
 
+function resolveFetchUrl(input: RequestInfo | URL): string {
+  if (typeof input === "string") return input;
+  if (input instanceof URL) return input.href;
+  return input.url;
+}
+
+/** Next.js RSC navigasyon istekleri — dev reload sırasında ağ hatası beklenir. */
+function isNextRscFetch(url: string, init?: RequestInit): boolean {
+  try {
+    const u = new URL(url, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+    if (u.searchParams.has("_rsc")) return true;
+    if (u.pathname.startsWith("/_next/")) return true;
+  } catch {
+    if (url.includes("_rsc=") || url.includes("/_next/")) return true;
+  }
+  const headers = init?.headers;
+  if (headers instanceof Headers) {
+    if (headers.get("RSC") === "1" || headers.get("Next-Router-Prefetch") === "1") return true;
+  } else if (headers && typeof headers === "object" && !Array.isArray(headers)) {
+    const h = headers as Record<string, string>;
+    if (h.RSC === "1" || h["Next-Router-Prefetch"] === "1") return true;
+  }
+  return false;
+}
+
 export function installClientDiagnosticsCapture() {
   if (installed || typeof window === "undefined") return;
   installed = true;
@@ -80,12 +105,13 @@ export function installClientDiagnosticsCapture() {
 
   const origFetch = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = resolveFetchUrl(input);
+    if (isNextRscFetch(url, init)) {
+      return origFetch(input, init);
+    }
     const res = await origFetch(input, init);
-    if (!res.ok) {
-      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-      if (!url.includes("/api/support/")) {
-        pushFailedFetch(fetchPathOnly(url), res.status);
-      }
+    if (!res.ok && !url.includes("/api/support/")) {
+      pushFailedFetch(fetchPathOnly(url), res.status);
     }
     return res;
   };

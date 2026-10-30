@@ -21,55 +21,93 @@ export async function GET(request: Request, context: RouteContext) {
 
   const encoder = new TextEncoder();
   let lastPayload = "";
+  let closed = false;
+  let interval: ReturnType<typeof setInterval> | undefined;
+  let controllerRef: ReadableStreamDefaultController<Uint8Array> | undefined;
+
+  const safeClose = () => {
+    if (closed) return;
+    closed = true;
+    if (interval !== undefined) clearInterval(interval);
+    try {
+      controllerRef?.close();
+    } catch {
+      // stream zaten kapanmış olabilir
+    }
+  };
 
   const stream = new ReadableStream({
     async start(controller) {
+      controllerRef = controller;
+
       const send = (payload: object) => {
-        const line = `data: ${JSON.stringify(payload)}\n\n`;
-        controller.enqueue(encoder.encode(line));
+        if (closed || request.signal.aborted) return;
+        if (controller.desiredSize === null) {
+          closed = true;
+          return;
+        }
+        try {
+          const line = `data: ${JSON.stringify(payload)}\n\n`;
+          controller.enqueue(encoder.encode(line));
+        } catch {
+          closed = true;
+          if (interval !== undefined) clearInterval(interval);
+        }
       };
 
-      const tick = async () => {
-        const { data } = await supabase
-          .from("machines")
-          .select(MACHINE_FIELDS)
-          .eq("id", machineId)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (!data) {
-          send({ type: "error", message: "Makine bulunamadı" });
+      const tick = async (): Promise<boolean> => {
+        if (closed || request.signal.aborted) return false;
+        try {
+          const { data } = await supabase
+            .from("machines")
+            .select(MACHINE_FIELDS)
+            .eq("id", machineId)
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (closed || request.signal.aborted) return false;
+          if (!data) {
+            send({ type: "error", message: "Makine bulunamadı" });
+            return false;
+          }
+          const json = JSON.stringify(data);
+          if (json !== lastPayload) {
+            lastPayload = json;
+            send({ type: "snapshot", machine: data });
+          } else {
+            send({ type: "heartbeat", at: new Date().toISOString() });
+          }
+          return true;
+        } catch {
+          if (!closed && !request.signal.aborted) safeClose();
           return false;
         }
-        const json = JSON.stringify(data);
-        if (json !== lastPayload) {
-          lastPayload = json;
-          send({ type: "snapshot", machine: data });
-        } else {
-          send({ type: "heartbeat", at: new Date().toISOString() });
-        }
-        return true;
+      };
+
+      const runTick = () => {
+        void tick().catch(() => {
+          if (!closed) safeClose();
+        });
       };
 
       send({ type: "connected", machineId });
       const ok = await tick();
       if (!ok) {
-        controller.close();
+        safeClose();
         return;
       }
 
-      const interval = setInterval(async () => {
-        if (request.signal.aborted) {
-          clearInterval(interval);
-          controller.close();
+      interval = setInterval(() => {
+        if (closed || request.signal.aborted) {
+          safeClose();
           return;
         }
-        await tick();
+        runTick();
       }, 2000);
 
-      request.signal.addEventListener("abort", () => {
-        clearInterval(interval);
-        controller.close();
-      });
+      request.signal.addEventListener("abort", safeClose, { once: true });
+    },
+    cancel() {
+      safeClose();
     },
   });
 

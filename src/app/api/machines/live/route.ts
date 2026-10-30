@@ -17,36 +17,79 @@ export async function GET(request: Request) {
   }
 
   const encoder = new TextEncoder();
+  let closed = false;
+  let interval: ReturnType<typeof setInterval> | undefined;
+  let controllerRef: ReadableStreamDefaultController<Uint8Array> | undefined;
+
+  const safeClose = () => {
+    if (closed) return;
+    closed = true;
+    if (interval !== undefined) clearInterval(interval);
+    try {
+      controllerRef?.close();
+    } catch {
+      // stream zaten kapanmış olabilir
+    }
+  };
 
   const stream = new ReadableStream({
     start(controller) {
+      controllerRef = controller;
+
       const send = (payload: object) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+        if (closed || request.signal.aborted) return;
+        if (controller.desiredSize === null) {
+          closed = true;
+          return;
+        }
+        try {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`),
+          );
+        } catch {
+          closed = true;
+          if (interval !== undefined) clearInterval(interval);
+        }
       };
 
       const tick = async () => {
-        const { data } = await supabase
-          .from("machines")
-          .select(MACHINE_FIELDS)
-          .eq("user_id", user.id)
-          .order("sort_order");
-        send({ type: "fleet", machines: data ?? [], at: new Date().toISOString() });
+        if (closed || request.signal.aborted) return;
+        try {
+          const { data } = await supabase
+            .from("machines")
+            .select(MACHINE_FIELDS)
+            .eq("user_id", user.id)
+            .order("sort_order");
+          if (closed || request.signal.aborted) return;
+          send({
+            type: "fleet",
+            machines: data ?? [],
+            at: new Date().toISOString(),
+          });
+        } catch {
+          if (!closed && !request.signal.aborted) safeClose();
+        }
       };
 
-      tick();
-      const interval = setInterval(() => {
-        if (request.signal.aborted) {
-          clearInterval(interval);
-          controller.close();
+      const runTick = () => {
+        void tick().catch(() => {
+          if (!closed) safeClose();
+        });
+      };
+
+      runTick();
+      interval = setInterval(() => {
+        if (closed || request.signal.aborted) {
+          safeClose();
           return;
         }
-        tick();
+        runTick();
       }, 3000);
 
-      request.signal.addEventListener("abort", () => {
-        clearInterval(interval);
-        controller.close();
-      });
+      request.signal.addEventListener("abort", safeClose, { once: true });
+    },
+    cancel() {
+      safeClose();
     },
   });
 
