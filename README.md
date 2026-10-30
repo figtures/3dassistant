@@ -105,9 +105,10 @@ Sunucuda `OPENAI_API_KEY` (veya `VOICE_LLM_API_KEY` + isteğe bağlı `VOICE_LLM
 
 ## Production deploy
 
-1. Vercel’e deploy edin; `vercel.json` saatlik cron tanımını içerir.
+1. Vercel’e deploy edin; `vercel.json` **app** + dahili **printflow-bridge** servislerini ve cron tanımlarını içerir.
 2. Ortam değişkenlerini ayarlayın: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, `NEXT_PUBLIC_SITE_URL`.
-3. Cron ve e-posta testi için bkz. [docs/production-cron.md](docs/production-cron.md).
+3. Servis düzeni ve yerel `vercel dev`: [docs/deployment.md](docs/deployment.md).
+4. Cron ve e-posta testi: [docs/production-cron.md](docs/production-cron.md).
 
 `.env.local.example` dosyasında tüm opsiyonel anahtarlar listelenir.
 

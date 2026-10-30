@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
-    "web": {
+    "app": {
       "root": ".",
       "framework": "nextjs",
       "bindings": [
@@ -20,7 +20,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": { "service": "web" }
+      "destination": { "service": "app" }
     }
   ],
   "crons": [

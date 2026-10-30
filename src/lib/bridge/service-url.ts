@@ -1,5 +1,5 @@
 /**
- * Vercel service binding (vercel.json → web → printflow-bridge).
+ * Vercel service binding (vercel.json → app → printflow-bridge).
  * Yalnızca sunucu fonksiyonlarında runtime'da dolar; middleware/build'de kullanılamaz.
  */
 export function getBridgeServiceBase(): string | undefined {
