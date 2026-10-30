@@ -14,7 +14,10 @@
       ]
     },
     "printflow-bridge": {
-      "root": "apps/printflow-bridge/cloud"
+      "root": "apps/printflow-bridge/cloud",
+      "runtime": "go",
+      "framework": "go",
+      "entrypoint": "main.go"
     }
   },
   "rewrites": [
