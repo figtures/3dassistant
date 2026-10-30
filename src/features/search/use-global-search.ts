@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 export type GlobalSearchCustomer = {
   id: string;
@@ -37,7 +38,10 @@ function escapeIlike(term: string): string {
   return term.replace(/[%_\\]/g, (ch) => `\\${ch}`);
 }
 
-async function fetchGlobalSearch(q: string): Promise<GlobalSearchResults> {
+async function fetchGlobalSearch(
+  tenantId: string,
+  q: string
+): Promise<GlobalSearchResults> {
   const supabase = createClient();
   const pattern = `%${escapeIlike(q)}%`;
 
@@ -45,24 +49,28 @@ async function fetchGlobalSearch(q: string): Promise<GlobalSearchResults> {
     supabase
       .from("customers")
       .select("id, name")
+      .eq("user_id", tenantId)
       .ilike("name", pattern)
       .order("name")
       .limit(5),
     supabase
       .from("jobs")
       .select("id, title, customer:customers(name)")
+      .eq("user_id", tenantId)
       .ilike("title", pattern)
       .order("job_date", { ascending: false })
       .limit(5),
     supabase
       .from("machines")
       .select("id, name")
+      .eq("user_id", tenantId)
       .ilike("name", pattern)
       .order("name")
       .limit(5),
     supabase
       .from("catalog_items")
       .select("id, name, sku")
+      .eq("user_id", tenantId)
       .or(`name.ilike."${pattern}",sku.ilike."${pattern}"`)
       .order("name")
       .limit(5),
@@ -99,6 +107,7 @@ async function fetchGlobalSearch(q: string): Promise<GlobalSearchResults> {
 }
 
 export function useGlobalSearch(query: string) {
+  const tenantId = useTenantId();
   const trimmed = query.trim();
   const [debounced, setDebounced] = useState("");
 
@@ -108,9 +117,9 @@ export function useGlobalSearch(query: string) {
   }, [trimmed]);
 
   const searchQuery = useQuery({
-    queryKey: ["global-search", debounced],
+    queryKey: ["global-search", tenantId, debounced],
     enabled: debounced.length >= 2,
-    queryFn: () => fetchGlobalSearch(debounced),
+    queryFn: () => fetchGlobalSearch(tenantId, debounced),
     staleTime: 30_000,
   });
 

@@ -37,6 +37,7 @@ import {
   mergeFleetLive,
 } from "@/features/machines/machine-utils";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ import {
 
 function MachinesV2Content() {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const router = useRouter();
   const searchParams = useSearchParams();
   const confirmAction = useConfirm();
@@ -168,13 +170,6 @@ function MachinesV2Content() {
   async function handleSave() {
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
 
     const payload = {
       name: form.name.trim(),
@@ -195,7 +190,7 @@ function MachinesV2Content() {
     } else {
       const { error } = await supabase.from("machines").insert({
         ...payload,
-        user_id: user.id,
+        user_id: tenantId,
         sort_order: machines.length,
       });
       if (error) {

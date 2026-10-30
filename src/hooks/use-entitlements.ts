@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { Entitlements } from "@/lib/billing/entitlements";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 export type EntitlementsResponse = {
   entitlements: Entitlements;
@@ -19,7 +20,11 @@ export async function fetchEntitlements(): Promise<EntitlementsResponse> {
 }
 
 export function useEntitlements() {
-  return useQuery({ queryKey: ENTITLEMENTS_QUERY_KEY, queryFn: fetchEntitlements });
+  const tenantId = useTenantId();
+  return useQuery({
+    queryKey: [...ENTITLEMENTS_QUERY_KEY, tenantId],
+    queryFn: fetchEntitlements,
+  });
 }
 
 export function machineSlotsLeft(data: EntitlementsResponse | undefined): number | null {

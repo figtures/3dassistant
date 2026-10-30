@@ -67,6 +67,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 const emptySaleForm = (): SaleFormValues => ({
   customer_id: "",
@@ -82,6 +83,7 @@ const emptySaleForm = (): SaleFormValues => ({
 
 export function CatalogItemScreen({ itemId }: { itemId: string }) {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const { data: item, isLoading } = useCatalogItem(itemId);
   const { data: sales = [] } = useCatalogSales(itemId);
   const { data: events = [] } = useCatalogEvents(itemId);
@@ -173,14 +175,7 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
     if (!item) return;
     setUploading(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setUploading(false);
-      return;
-    }
-    const path = `${user.id}/${item.id}/${Date.now()}_${file.name}`;
+    const path = `${tenantId}/${item.id}/${Date.now()}_${file.name}`;
     const { error: upErr } = await supabase.storage
       .from("catalog-files")
       .upload(path, file, { upsert: false, contentType: file.type || "application/octet-stream" });
@@ -191,7 +186,7 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
     }
     const fileType = detectFileType(file.name);
     const { error: dbErr } = await supabase.from("catalog_files").insert({
-      user_id: user.id,
+      user_id: tenantId,
       item_id: item.id,
       file_type: fileType,
       path,
@@ -205,7 +200,7 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
       return;
     }
     await supabase.from("catalog_events").insert({
-      user_id: user.id,
+      user_id: tenantId,
       item_id: item.id,
       event_type: "file_uploaded",
       payload: { name: file.name, file_type: fileType },
@@ -227,18 +222,11 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
     if (!item) return;
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
 
     const { data: sale, error: saleErr } = await supabase
       .from("sales")
       .insert({
-        user_id: user.id,
+        user_id: tenantId,
         item_id: item.id,
         customer_id: saleForm.customer_id || null,
         channel: saleForm.channel || null,
@@ -257,7 +245,7 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
 
     if (saleForm.carrier || saleForm.tracking_number) {
       await supabase.from("shipments").insert({
-        user_id: user.id,
+        user_id: tenantId,
         sale_id: sale.id,
         carrier: saleForm.carrier || null,
         tracking_number: saleForm.tracking_number || null,
@@ -280,19 +268,12 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
     if (!item || !delta) return;
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
     const inv = inventoryRecord(item);
     const current = inv?.quantity_on_hand ?? 0;
     const next = Math.max(0, current + delta);
     const { error } = await supabase.from("catalog_inventory").upsert(
       {
-        user_id: user.id,
+        user_id: tenantId,
         item_id: item.id,
         quantity_on_hand: next,
         quantity_reserved: inv?.quantity_reserved ?? 0,
@@ -305,7 +286,7 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
       return;
     }
     await supabase.from("catalog_events").insert({
-      user_id: user.id,
+      user_id: tenantId,
       item_id: item.id,
       event_type: "stock_adjusted",
       payload: { delta, quantity_on_hand: next },
@@ -334,12 +315,8 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
   async function linkJob() {
     if (!linkJobId || !item) return;
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
     const { error } = await supabase.from("catalog_item_jobs").insert({
-      user_id: user.id,
+      user_id: tenantId,
       catalog_item_id: item.id,
       job_id: linkJobId,
     });

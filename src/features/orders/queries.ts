@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Job, JobStatus, PaymentStatus } from "@/types/database";
 import { todayIsoInIstanbul } from "@/lib/format";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import type { OrderTabId } from "@/features/orders/order-constants";
 import {
   tabToPaymentFilter,
@@ -52,17 +53,19 @@ function mergePaymentFilters(
 }
 
 export function useOrders(params: UseOrdersParams) {
+  const tenantId = useTenantId();
   const page = Math.max(1, params.page ?? 1);
   const pageSize = params.pageSize ?? 25;
   const tab = params.tab ?? "all";
 
   return useQuery({
-    queryKey: ["orders", params],
+    queryKey: ["orders", tenantId, params],
     queryFn: async (): Promise<OrdersPage> => {
       const supabase = createClient();
       let query = supabase
         .from("jobs")
-        .select(JOB_SELECT, { count: "exact" });
+        .select(JOB_SELECT, { count: "exact" })
+        .eq("user_id", tenantId);
 
       const statuses = mergeStatusFilters(tab, params.status);
       if (statuses?.length) {
@@ -123,11 +126,12 @@ export type UseOrdersBoardParams = {
 };
 
 export function useOrdersBoard(params: UseOrdersBoardParams) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["orders-board", params],
+    queryKey: ["orders-board", tenantId, params],
     queryFn: async (): Promise<Job[]> => {
       const supabase = createClient();
-      let query = supabase.from("jobs").select(JOB_SELECT);
+      let query = supabase.from("jobs").select(JOB_SELECT).eq("user_id", tenantId);
 
       if (params.machineId) {
         query = query.eq("machine_id", params.machineId);
@@ -158,14 +162,16 @@ export function useOrdersBoard(params: UseOrdersBoardParams) {
 }
 
 export function useOrderById(orderId: string | null) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["order", orderId],
+    queryKey: ["order", tenantId, orderId],
     enabled: !!orderId && orderId !== "new",
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("jobs")
         .select(JOB_SELECT)
+        .eq("user_id", tenantId)
         .eq("id", orderId!)
         .single();
       if (error) throw error;

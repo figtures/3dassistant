@@ -28,6 +28,7 @@ import {
   type MaterialFormValues,
 } from "@/features/materials/material-mutations";
 import type { Material, MaterialColor } from "@/types/database";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import { isLowStock, lowStockThreshold } from "@/lib/stock";
 import { cn } from "@/lib/utils";
 import { Cylinder, Package, Plus } from "lucide-react";
@@ -36,6 +37,7 @@ import { toast } from "sonner";
 const PRESET_MATERIALS = ["PLA", "PETG", "ASA", "ABS", "TPU", "Nylon", "PC", "HIPS"];
 
 export function MaterialsV2() {
+  const tenantId = useTenantId();
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -152,15 +154,8 @@ export function MaterialsV2() {
   async function handleSave() {
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
 
-    const result = await saveMaterial(supabase, user.id, editingId, form, colors);
+    const result = await saveMaterial(supabase, tenantId, editingId, form, colors);
     if (result.error) {
       toast.error(result.error);
       setSaving(false);

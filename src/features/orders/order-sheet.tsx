@@ -39,6 +39,7 @@ import {
   uploadOrderFile,
   type PendingNote,
 } from "@/features/orders/use-order-mutations";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import { formatDateShort } from "@/lib/format";
 import { ExternalLink, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -59,6 +60,7 @@ export function OrderSheet({
   onSaved,
 }: OrderSheetProps) {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const confirmAction = useConfirm();
   const isNew = !orderId || orderId === "new";
   const { data: loadedJob, isLoading: jobLoading } = useOrderById(
@@ -244,13 +246,6 @@ export function OrderSheet({
     setFieldErrors({});
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
 
     const formForSave = {
       ...form,
@@ -272,7 +267,7 @@ export function OrderSheet({
     const { error, jobId } = await saveOrder(
       supabase,
       queryClient,
-      user.id,
+      tenantId,
       formForSave,
       materials,
       customers,
@@ -326,11 +321,7 @@ export function OrderSheet({
       return;
     }
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await uploadOrderFile(supabase, user.id, activeId, file);
+    const { error } = await uploadOrderFile(supabase, tenantId, activeId, file);
     if (error) toast.error(error);
     else toast.success("Dosya yüklendi");
   }

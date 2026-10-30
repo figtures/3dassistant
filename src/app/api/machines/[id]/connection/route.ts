@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { testConnection } from "@/lib/printer-monitoring/sync";
 import type { AdapterType } from "@/lib/printer-monitoring/types";
 import { isLanMonitoringEnabled, LAN_DISABLED_MESSAGE } from "@/lib/printer-monitoring/lan";
+import { requireWorkspaceSession } from "@/lib/workspace/active";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +17,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
   const { id: machineId } = await context.params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const session = await requireWorkspaceSession();
+  if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const { workspaceId } = session;
 
   let body: {
     adapter_type?: AdapterType;
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     .from("machines")
     .select("id")
     .eq("id", machineId)
-    .eq("user_id", user.id)
+    .eq("user_id", workspaceId)
     .maybeSingle();
 
   if (!machine) {
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const now = new Date().toISOString();
   const row = {
     machine_id: machineId,
-    user_id: user.id,
+    user_id: workspaceId,
     adapter_type: adapterType,
     base_url: adapterType === "manual" ? null : baseUrl,
     api_key: adapterType === "manual" ? null : apiKey,
@@ -143,19 +142,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   const { id: machineId } = await context.params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const session = await requireWorkspaceSession();
+  if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const { workspaceId } = session;
 
   const { error } = await supabase
     .from("machine_connections")
     .delete()
     .eq("machine_id", machineId)
-    .eq("user_id", user.id);
+    .eq("user_id", workspaceId);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -175,7 +172,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
       telemetry_updated_at: new Date().toISOString(),
     })
     .eq("id", machineId)
-    .eq("user_id", user.id);
+    .eq("user_id", workspaceId);
 
   return NextResponse.json({ ok: true });
 }

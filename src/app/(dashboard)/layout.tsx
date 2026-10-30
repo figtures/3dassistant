@@ -8,6 +8,8 @@ import {
   parseSidebarCollapsed,
   SIDEBAR_COOKIE,
 } from "@/lib/shell/sidebar-cookie";
+import { WorkspaceProvider } from "@/components/workspace/workspace-provider";
+import { loadWorkspaceSession } from "@/lib/workspace/active";
 import { getAuthUser } from "@/lib/supabase/get-auth-user";
 import { isSupportAdminEmail } from "@/lib/support/admin";
 
@@ -36,19 +38,24 @@ export default async function DashboardLayout({
     displayName,
   };
 
+  const workspace = await loadWorkspaceSession();
+  if (!workspace) redirect("/login");
+
   return (
-    <SupportDiagnosticsRoot>
-      {ui === "v2" ? (
-        <AppShellV2
-          user={shellUser}
-          sidebarCollapsed={sidebarCollapsed}
-          isSupportAdmin={isSupportAdminEmail(user.email)}
-        >
-          {children}
-        </AppShellV2>
-      ) : (
-        <AppShell>{children}</AppShell>
-      )}
-    </SupportDiagnosticsRoot>
+    <WorkspaceProvider initial={workspace}>
+      <SupportDiagnosticsRoot>
+        {ui === "v2" ? (
+          <AppShellV2
+            user={shellUser}
+            sidebarCollapsed={sidebarCollapsed}
+            isSupportAdmin={isSupportAdminEmail(user.email)}
+          >
+            {children}
+          </AppShellV2>
+        ) : (
+          <AppShell>{children}</AppShell>
+        )}
+      </SupportDiagnosticsRoot>
+    </WorkspaceProvider>
   );
 }

@@ -21,15 +21,18 @@ import type {
 } from "@/types/database";
 import { format, subDays, addDays, parseISO, eachDayOfInterval } from "date-fns";
 import { tr } from "date-fns/locale";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 export function useJobs(filters?: Partial<DashboardFilters>) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["jobs", filters],
+    queryKey: ["jobs", tenantId, filters],
     queryFn: async () => {
       const supabase = createClient();
       let query = supabase
         .from("jobs")
-        .select("*, machine:machines(*), customer:customers(*), material:materials(*), material_color:material_colors(*)");
+        .select("*, machine:machines(*), customer:customers(*), material:materials(*), material_color:material_colors(*)")
+        .eq("user_id", tenantId);
 
       if (filters?.dateFrom && filters?.dateField === "delivery_date") {
         query = query.gte("delivery_date", filters.dateFrom);
@@ -60,16 +63,18 @@ export function useJobs(filters?: Partial<DashboardFilters>) {
 
 /** Teslim uyarıları için — aktif işler, geniş tarih aralığı */
 export function useDeliveryJobs() {
+  const tenantId = useTenantId();
   const dateFrom = format(subDays(new Date(), 90), "yyyy-MM-dd");
   const dateTo = format(addDays(new Date(), 60), "yyyy-MM-dd");
 
   return useQuery({
-    queryKey: ["jobs", "delivery", dateFrom, dateTo],
+    queryKey: ["jobs", "delivery", tenantId, dateFrom, dateTo],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("jobs")
         .select("*, machine:machines(*), customer:customers(*), material:materials(*), material_color:material_colors(*)")
+        .eq("user_id", tenantId)
         .not("delivery_date", "is", null)
         .gte("delivery_date", dateFrom)
         .lte("delivery_date", dateTo)
@@ -83,13 +88,15 @@ export function useDeliveryJobs() {
 }
 
 export function useMaterials() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["materials"],
+    queryKey: ["materials", tenantId],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("materials")
         .select("*, material_colors(*)")
+        .eq("user_id", tenantId)
         .order("name");
       if (error) throw error;
       return (data ?? []).map((m) => ({
@@ -146,14 +153,16 @@ function normalizeMachineRow(row: Record<string, unknown>): Machine {
 }
 
 export function useMachines(options?: { live?: boolean }) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["machines"],
+    queryKey: ["machines", tenantId],
     refetchInterval: options?.live ? 10_000 : false,
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("machines")
         .select(MACHINE_SELECT)
+        .eq("user_id", tenantId)
         .order("sort_order");
       if (error) throw error;
       return (data ?? []).map((row) => normalizeMachineRow(row as Record<string, unknown>));
@@ -162,14 +171,16 @@ export function useMachines(options?: { live?: boolean }) {
 }
 
 export function useMachine(machineId: string, options?: { live?: boolean }) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["machines", machineId],
+    queryKey: ["machines", tenantId, machineId],
     refetchInterval: options?.live ? 5_000 : false,
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("machines")
         .select(MACHINE_SELECT)
+        .eq("user_id", tenantId)
         .eq("id", machineId)
         .maybeSingle();
       if (error) throw error;
@@ -180,13 +191,15 @@ export function useMachine(machineId: string, options?: { live?: boolean }) {
 }
 
 export function useCustomers() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["customers"],
+    queryKey: ["customers", tenantId],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("customers")
         .select("*")
+        .eq("user_id", tenantId)
         .order("name");
       if (error) throw error;
       return data as Customer[];
@@ -195,8 +208,9 @@ export function useCustomers() {
 }
 
 export function useCustomerJobs(customerId: string | null) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["jobs", "customer", customerId],
+    queryKey: ["jobs", "customer", tenantId, customerId],
     enabled: !!customerId,
     queryFn: async () => {
       const supabase = createClient();
@@ -205,6 +219,7 @@ export function useCustomerJobs(customerId: string | null) {
         .select(
           "*, machine:machines(*), material:materials(*), material_color:material_colors(*), job_notes(*)"
         )
+        .eq("user_id", tenantId)
         .eq("customer_id", customerId!)
         .order("job_date", { ascending: false });
       if (error) throw error;
@@ -214,13 +229,15 @@ export function useCustomerJobs(customerId: string | null) {
 }
 
 export function useFaultTypes() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["fault_types"],
+    queryKey: ["fault_types", tenantId],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("fault_types")
         .select("*")
+        .eq("user_id", tenantId)
         .order("sort_order");
       if (error) throw error;
       return (data ?? []) as FaultType[];
@@ -229,13 +246,15 @@ export function useFaultTypes() {
 }
 
 export function useFaults() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["faults"],
+    queryKey: ["faults", tenantId],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("faults")
         .select("*, machine:machines(*), fault_type:fault_types(*)")
+        .eq("user_id", tenantId)
         .order("fault_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Fault[];
@@ -375,11 +394,16 @@ export function computeMetrics(jobs: Job[], customers: Customer[] = [], faults: 
 }
 
 export function useSuppliers() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["suppliers"],
+    queryKey: ["suppliers", tenantId],
     queryFn: async () => {
       const supabase = createClient();
-      const { data, error } = await supabase.from("suppliers").select("*").order("name");
+      const { data, error } = await supabase
+        .from("suppliers")
+        .select("*")
+        .eq("user_id", tenantId)
+        .order("name");
       if (error) throw error;
       return (data ?? []) as Supplier[];
     },
@@ -387,8 +411,9 @@ export function useSuppliers() {
 }
 
 export function useMaterialPurchases() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["material_purchases"],
+    queryKey: ["material_purchases", tenantId],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -396,6 +421,7 @@ export function useMaterialPurchases() {
         .select(
           "*, supplier:suppliers(*), material:materials(*), material_color:material_colors(*)"
         )
+        .eq("user_id", tenantId)
         .order("purchase_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as MaterialPurchase[];
@@ -404,8 +430,9 @@ export function useMaterialPurchases() {
 }
 
 export function useCatalogItems() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["catalog_items"],
+    queryKey: ["catalog_items", tenantId],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -413,6 +440,7 @@ export function useCatalogItems() {
         .select(
           "*, default_material:materials(*), catalog_inventory(*), catalog_files(*)"
         )
+        .eq("user_id", tenantId)
         .order("name");
       if (error) throw error;
       return (data ?? []) as CatalogItem[];
@@ -421,8 +449,9 @@ export function useCatalogItems() {
 }
 
 export function useCatalogItem(itemId: string | null) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["catalog_items", itemId],
+    queryKey: ["catalog_items", tenantId, itemId],
     enabled: !!itemId,
     queryFn: async () => {
       const supabase = createClient();
@@ -431,6 +460,7 @@ export function useCatalogItem(itemId: string | null) {
         .select(
           "*, default_material:materials(*), catalog_files(*), catalog_inventory(*)"
         )
+        .eq("user_id", tenantId)
         .eq("id", itemId!)
         .single();
       if (error) throw error;
@@ -440,13 +470,15 @@ export function useCatalogItem(itemId: string | null) {
 }
 
 export function useCatalogSales(itemId?: string) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["sales", itemId ?? "all"],
+    queryKey: ["sales", tenantId, itemId ?? "all"],
     queryFn: async () => {
       const supabase = createClient();
       let query = supabase
         .from("sales")
         .select("*, customer:customers(*), catalog_item:catalog_items(*), shipments(*)")
+        .eq("user_id", tenantId)
         .order("sold_at", { ascending: false });
       if (itemId) query = query.eq("item_id", itemId);
       const { data, error } = await query;
@@ -457,13 +489,15 @@ export function useCatalogSales(itemId?: string) {
 }
 
 export function useRecentJobs(limit = 30) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["jobs", "recent", limit],
+    queryKey: ["jobs", "recent", tenantId, limit],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("jobs")
         .select("*, machine:machines(*), customer:customers(*)")
+        .eq("user_id", tenantId)
         .order("updated_at", { ascending: false })
         .limit(limit);
       if (error) throw error;
@@ -473,14 +507,16 @@ export function useRecentJobs(limit = 30) {
 }
 
 export function useCatalogItemJobs(catalogItemId: string | null) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["catalog_item_jobs", catalogItemId],
+    queryKey: ["catalog_item_jobs", tenantId, catalogItemId],
     enabled: !!catalogItemId,
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("catalog_item_jobs")
         .select("*, job:jobs(*, machine:machines(*), customer:customers(*))")
+        .eq("user_id", tenantId)
         .eq("catalog_item_id", catalogItemId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -490,11 +526,15 @@ export function useCatalogItemJobs(catalogItemId: string | null) {
 }
 
 export function useShipmentStatusCounts() {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["shipments", "status_counts"],
+    queryKey: ["shipments", "status_counts", tenantId],
     queryFn: async () => {
       const supabase = createClient();
-      const { data, error } = await supabase.from("shipments").select("status");
+      const { data, error } = await supabase
+        .from("shipments")
+        .select("status")
+        .eq("user_id", tenantId);
       if (error) throw error;
       const counts: Record<ShipmentStatus, number> = {
         pending: 0,
@@ -513,14 +553,16 @@ export function useShipmentStatusCounts() {
 }
 
 export function useCatalogEvents(itemId: string | null) {
+  const tenantId = useTenantId();
   return useQuery({
-    queryKey: ["catalog_events", itemId],
+    queryKey: ["catalog_events", tenantId, itemId],
     enabled: !!itemId,
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("catalog_events")
         .select("*")
+        .eq("user_id", tenantId)
         .eq("item_id", itemId!)
         .order("created_at", { ascending: false })
         .limit(50);

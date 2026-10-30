@@ -34,6 +34,7 @@ import {
   Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 type ViewMode = "grid" | "list";
 
@@ -47,6 +48,7 @@ const emptyForm = (materialId: string): CatalogCreateForm => ({
 });
 
 export function CatalogV2() {
+  const tenantId = useTenantId();
   const queryClient = useQueryClient();
   const { data: items = [], isLoading, isError, refetch } = useCatalogItems();
   const { data: materials = [] } = useMaterials();
@@ -131,19 +133,12 @@ export function CatalogV2() {
     }
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
     const tags = form.tags
       .split(/[,;]/)
       .map((t) => t.trim())
       .filter(Boolean);
     const { error } = await supabase.from("catalog_items").insert({
-      user_id: user.id,
+      user_id: tenantId,
       sku: form.sku.trim(),
       name: form.name.trim(),
       description: form.description.trim() || null,

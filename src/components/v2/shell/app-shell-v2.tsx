@@ -21,6 +21,7 @@ import { MobileNavSheet } from "@/components/v2/shell/mobile-nav";
 import { useNavBadges } from "@/components/v2/shell/use-nav-badges";
 import type { ShellUser } from "@/components/v2/shell/user-menu";
 import { SidebarPlanCard } from "@/components/v2/shell/sidebar-plan-card";
+import { WorkspaceSwitcher } from "@/components/v2/shell/workspace-switcher";
 
 export type AppShellV2Props = {
   children: React.ReactNode;
@@ -96,6 +97,7 @@ export function AppShellV2({
             onToggle={toggleCollapsed}
           />
         </div>
+        <WorkspaceSwitcher collapsed={collapsed} />
         <SidebarNavPanel
           collapsed={collapsed}
           badges={badges}

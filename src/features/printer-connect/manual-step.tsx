@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useMachines } from "@/hooks/use-data";
 import { Button, FormField, Input } from "@/components/ds";
 import type { MachineStatus } from "@/types/database";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 const STATUS_LABELS: Record<MachineStatus, string> = {
   active: "Aktif",
@@ -23,6 +24,7 @@ type ManualStepProps = {
 export function ManualStep({ onSaved, onBack }: ManualStepProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const { data: machines = [] } = useMachines();
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
@@ -36,14 +38,6 @@ export function ManualStep({ onSaved, onBack }: ManualStepProps) {
     }
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Oturum bulunamadı");
-      setSaving(false);
-      return;
-    }
 
     const { data, error } = await supabase
       .from("machines")
@@ -51,7 +45,7 @@ export function ManualStep({ onSaved, onBack }: ManualStepProps) {
         name: name.trim(),
         model: model.trim() || null,
         status,
-        user_id: user.id,
+        user_id: tenantId,
         sort_order: machines.length,
       })
       .select("id")

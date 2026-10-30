@@ -11,6 +11,7 @@ import {
 } from "@/features/onboarding/material-templates";
 import { Button } from "@/components/ds/button";
 import { cn } from "@/lib/utils";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 type StepMaterialsProps = {
   onContinue: () => void;
@@ -19,6 +20,7 @@ type StepMaterialsProps = {
 
 export function StepMaterials({ onContinue, onSkip }: StepMaterialsProps) {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const [selected, setSelected] = useState<Set<string>>(new Set(["pla"]));
   const [colorPick, setColorPick] = useState<Record<string, number>>({
     pla: 0,
@@ -48,21 +50,13 @@ export function StepMaterials({ onContinue, onSkip }: StepMaterialsProps) {
     }
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Oturum bulunamadı");
-      setSaving(false);
-      return;
-    }
 
     for (const template of templates) {
       const colorIndex = colorPick[template.id] ?? 0;
       const color = template.colors[colorIndex] ?? template.colors[0];
       const result = await saveMaterial(
         supabase,
-        user.id,
+        tenantId,
         null,
         {
           name: template.name,

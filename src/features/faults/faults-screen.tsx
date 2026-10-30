@@ -11,6 +11,7 @@ import { mapFaultVoiceToFormFields } from "@/lib/parse-note";
 import { resolveVoiceParse, type VoiceParseSource } from "@/lib/voice-parse-client";
 import type { VoiceFieldConfidence } from "@/lib/voice-confidence";
 import type { Fault, FaultStatus } from "@/types/database";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import { Button, EmptyState, Skeleton } from "@/components/ds";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
@@ -46,6 +47,7 @@ function parseStatusFilter(value: string | null): FaultStatusFilter {
 }
 
 function FaultsV2Content() {
+  const tenantId = useTenantId();
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -146,16 +148,9 @@ function FaultsV2Content() {
   async function handleSave() {
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
     const { error } = await saveFaultRecord(
       supabase,
-      user.id,
+      tenantId,
       editingFault?.id ?? null,
       form,
       faultTypes,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements, getMachineUsage } from "@/lib/billing/entitlements";
 import { isPaddleConfigured } from "@/lib/billing/paddle";
+import { getActiveWorkspaceId } from "@/lib/workspace/active";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,15 @@ export async function GET() {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
 
+  const workspaceId = await getActiveWorkspaceId();
+  if (!workspaceId) {
+    return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
+  }
+
   try {
     const [entitlements, usage] = await Promise.all([
-      getEntitlements(supabase, user.id),
-      getMachineUsage(supabase, user.id),
+      getEntitlements(supabase, workspaceId),
+      getMachineUsage(supabase, workspaceId),
     ]);
     return NextResponse.json({
       entitlements,

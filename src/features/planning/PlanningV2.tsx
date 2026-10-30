@@ -25,9 +25,11 @@ import type { Job, Machine } from "@/types/database";
 import { todayIsoInIstanbul } from "@/lib/format";
 import { CalendarRange } from "lucide-react";
 import { toast } from "sonner";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 export function PlanningV2() {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const router = useRouter();
   const [days, setDays] = useState(14);
   const [offset, setOffset] = useState(0);
@@ -85,16 +87,9 @@ export function PlanningV2() {
     if (!newMachineName.trim()) return;
     setAddMachineLoading(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setAddMachineLoading(false);
-      return;
-    }
 
     const { error } = await supabase.from("machines").insert({
-      user_id: user.id,
+      user_id: tenantId,
       name: newMachineName.trim(),
       sort_order: machines.length,
     });

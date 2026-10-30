@@ -13,6 +13,7 @@ import { getMaterialColors } from "@/lib/materials";
 import { formatCurrency } from "@/lib/format";
 import type { VoiceFieldConfidence } from "@/lib/voice-confidence";
 import type { MaterialPurchase } from "@/types/database";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import {
   Badge,
   Button,
@@ -56,6 +57,7 @@ function parseTab(value: string | null): ProcurementTab {
 }
 
 function ProcurementV2Content() {
+  const tenantId = useTenantId();
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -219,16 +221,9 @@ function ProcurementV2Content() {
   async function handleSaveSupplier() {
     setSavingSupplier(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSavingSupplier(false);
-      return;
-    }
     const { error } = await saveSupplierRecord(
       supabase,
-      user.id,
+      tenantId,
       editingSupplierId,
       supplierForm
     );
@@ -265,16 +260,9 @@ function ProcurementV2Content() {
   async function handleSavePurchase() {
     setSavingPurchase(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSavingPurchase(false);
-      return;
-    }
     const { error } = await savePurchaseRecord(
       supabase,
-      user.id,
+      tenantId,
       editingPurchaseId,
       purchaseForm,
       materials

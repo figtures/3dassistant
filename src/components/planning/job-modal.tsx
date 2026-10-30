@@ -26,6 +26,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 
 interface JobModalProps {
   open: boolean;
@@ -63,6 +64,7 @@ export function JobModal({
   onSaved,
 }: JobModalProps) {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [customerId, setCustomerId] = useState("");
@@ -264,8 +266,6 @@ export function JobModal({
   async function handleSave() {
     setSaving(true);
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
 
     let resolvedCustomerId = customerId || null;
 
@@ -286,7 +286,7 @@ export function JobModal({
       const { data: newCustomer, error: custErr } = await supabase
         .from("customers")
         .insert({
-          user_id: user.id,
+          user_id: tenantId,
           name: pendingCustomerName.trim(),
           source: pendingCustomerSource || null,
           referral: pendingCustomerReferral || null,
@@ -308,7 +308,7 @@ export function JobModal({
     const totalDurationMinutes = hours * 60 + mins || null;
 
     const payload = {
-      user_id: user.id,
+      user_id: tenantId,
       machine_id: machine.id,
       job_date: date,
       title: title || null,
@@ -369,12 +369,10 @@ export function JobModal({
     }
 
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
 
     const ext = file.name.split(".").pop()?.toLowerCase();
     const fileType = ext === "stl" ? "stl" : ["jpg", "jpeg", "png", "webp", "gif"].includes(ext ?? "") ? "image" : "other";
-    const path = `${user.id}/${activeJobId}/${Date.now()}_${file.name}`;
+    const path = `${tenantId}/${activeJobId}/${Date.now()}_${file.name}`;
 
     const { error: uploadError } = await supabase.storage
       .from("job-files")

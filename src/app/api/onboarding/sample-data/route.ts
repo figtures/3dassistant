@@ -10,31 +10,30 @@ import {
   machineLimitMessage,
   PLAN_ERROR,
 } from "@/lib/billing/entitlements";
+import { requireWorkspaceSession } from "@/lib/workspace/active";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const session = await requireWorkspaceSession();
+  if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const { workspaceId } = session;
 
   try {
-    const already = await userHasSampleData(supabase, user.id);
+    const already = await userHasSampleData(supabase, workspaceId);
     if (already) {
       return NextResponse.json({ ok: true, alreadyExists: true });
     }
 
-    const result = await insertOnboardingSampleData(supabase, user.id);
+    const result = await insertOnboardingSampleData(supabase, workspaceId);
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Örnek veri eklenemedi";
     if (message === "PLAN_MACHINE_LIMIT") {
-      const entitlements = await getEntitlements(supabase, user.id);
+      const entitlements = await getEntitlements(supabase, workspaceId);
       return NextResponse.json(
         {
           error: machineLimitMessage(entitlements.maxMachines),
@@ -49,16 +48,14 @@ export async function POST() {
 
 export async function DELETE() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const session = await requireWorkspaceSession();
+  if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const { workspaceId } = session;
 
   try {
-    const deleted = await deleteOnboardingSampleData(supabase, user.id);
+    const deleted = await deleteOnboardingSampleData(supabase, workspaceId);
     return NextResponse.json({ ok: true, ...deleted });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Örnek veriler silinemedi";

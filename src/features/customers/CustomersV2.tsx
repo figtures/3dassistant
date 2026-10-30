@@ -29,6 +29,7 @@ import {
   CustomerSheet,
   type CustomerFormValues,
 } from "@/features/customers/customer-sheet";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import { CustomersTable } from "@/features/customers/customers-table";
 import {
   buildCustomerStatsMap,
@@ -67,6 +68,7 @@ function validateImportRow(row: CustomerImportRow): string | undefined {
 
 function CustomersV2Content() {
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const router = useRouter();
   const searchParams = useSearchParams();
   const confirmAction = useConfirm();
@@ -170,13 +172,6 @@ function CustomersV2Content() {
   async function handleSave() {
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
 
     const payload = {
       name: form.name.trim(),
@@ -199,7 +194,7 @@ function CustomersV2Content() {
     } else {
       const { error } = await supabase.from("customers").insert({
         ...payload,
-        user_id: user.id,
+        user_id: tenantId,
       });
       if (error) {
         toast.error(error.message);
@@ -271,16 +266,9 @@ function CustomersV2Content() {
   async function handleImportConfirm() {
     setImporting(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setImporting(false);
-      return;
-    }
 
     const rows = importValid.map(({ row }) => ({
-      user_id: user.id,
+      user_id: tenantId,
       name: row.name.trim(),
       email: row.email?.trim() || null,
       phone: row.phone?.trim() || null,

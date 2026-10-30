@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useCustomers, useMachines, useMaterials } from "@/hooks/use-data";
 import { saveOrder } from "@/features/orders/use-order-mutations";
+import { useTenantId } from "@/components/workspace/workspace-provider";
 import { emptyOrderForm } from "@/features/orders/order-schema";
 import { Button } from "@/components/ds/button";
 import { FormField } from "@/components/ds/form-field";
@@ -20,6 +21,7 @@ type StepFirstOrderProps = {
 export function StepFirstOrder({ onFinish, onSkip }: StepFirstOrderProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const tenantId = useTenantId();
   const { data: machines = [] } = useMachines();
   const { data: materials = [] } = useMaterials();
   const { data: customers = [] } = useCustomers();
@@ -47,14 +49,6 @@ export function StepFirstOrder({ onFinish, onSkip }: StepFirstOrderProps) {
     }
     setSaving(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Oturum bulunamadı");
-      setSaving(false);
-      return;
-    }
 
     const form = emptyOrderForm({
       machine_id: defaultMachineId,
@@ -77,7 +71,7 @@ export function StepFirstOrder({ onFinish, onSkip }: StepFirstOrderProps) {
     const result = await saveOrder(
       supabase,
       queryClient,
-      user.id,
+      tenantId,
       form,
       materials,
       customers,
