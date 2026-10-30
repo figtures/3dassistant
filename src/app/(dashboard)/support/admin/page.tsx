@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
@@ -130,7 +131,7 @@ export default function SupportAdminPage() {
         title="Destek paneli"
         description="Müşteri bildirimleri, ekler ve istemci hataları (iç kullanım)"
       />
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           size="sm"
@@ -147,6 +148,12 @@ export default function SupportAdminPage() {
         >
           Hatalar
         </Button>
+        <Link
+          href="/support/admin/feedback"
+          className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+        >
+          NPS / CSAT
+        </Link>
       </div>
 
       {tab === "errors" ? (

@@ -10,6 +10,7 @@ import { SUPPORT_STATUS_LABELS, type SupportReportStatus } from "@/lib/support/s
 import { ArrowLeft, Loader2, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { CsatPrompt } from "@/features/feedback/csat-prompt";
 
 type Message = {
   id: string;
@@ -183,6 +184,8 @@ export function TicketScreen({ ticketId }: TicketScreenProps) {
           );
         })}
       </ul>
+
+      <CsatPrompt ticketId={ticket.ticket_id} status={ticket.status} />
 
       {ticket.status !== "resolved" && (
         <div className="space-y-3 rounded-xl border border-border p-4">

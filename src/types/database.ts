@@ -545,3 +545,16 @@ export interface SavedView {
   shared: boolean;
   created_at: string;
 }
+
+export type FeedbackKind = "nps" | "csat" | "page";
+
+export interface FeedbackResponse {
+  id: string;
+  workspace_id: string | null;
+  user_id: string;
+  kind: FeedbackKind;
+  score: number;
+  comment: string | null;
+  context: Record<string, unknown>;
+  created_at: string;
+}
