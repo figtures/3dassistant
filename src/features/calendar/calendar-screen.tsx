@@ -2,16 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  useCustomers,
-  useDeliveryJobs,
-  useJobs,
-  useMachines,
-  useMaterials,
-} from "@/hooks/use-data";
+import { useDeliveryJobs, useJobs, useMachines } from "@/hooks/use-data";
 import { Skeleton } from "@/components/ds";
 import { DeliveryAlerts } from "@/components/dashboard/delivery-alerts";
-import { JobModal } from "@/components/planning/job-modal";
+import { OrderSheet } from "@/features/orders/order-sheet";
 import { AgendaList } from "@/features/calendar/agenda-list";
 import { MonthGrid } from "@/features/calendar/month-grid";
 import type { Job, Machine } from "@/types/database";
@@ -43,8 +37,6 @@ export function CalendarV2() {
     dateField: "delivery_date",
   });
   const { data: deliveryJobs = [], isLoading: alertsLoading } = useDeliveryJobs();
-  const { data: materials = [] } = useMaterials();
-  const { data: customers = [] } = useCustomers();
   const { data: machines = [] } = useMachines();
 
   const machineMap = useMemo(
@@ -130,14 +122,16 @@ export function CalendarV2() {
       )}
 
       {selectedJob && modalMachine ? (
-        <JobModal
+        <OrderSheet
           open
-          onClose={() => setSelectedJob(null)}
-          job={selectedJob}
-          machine={modalMachine}
-          date={selectedJob.job_date}
-          materials={materials}
-          customers={customers}
+          onOpenChange={(open) => {
+            if (!open) setSelectedJob(null);
+          }}
+          orderId={selectedJob.id}
+          prefill={{
+            machine_id: modalMachine.id,
+            job_date: selectedJob.job_date,
+          }}
           onSaved={() => {
             queryClient.invalidateQueries({ queryKey: ["jobs"] });
             setSelectedJob(null);

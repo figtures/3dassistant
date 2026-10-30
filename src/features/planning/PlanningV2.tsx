@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   getPlanningDates,
-  useCustomers,
   useJobs,
   useMachines,
-  useMaterials,
 } from "@/hooks/use-data";
-import { JobModal } from "@/components/planning/job-modal";
+import { OrderSheet } from "@/features/orders/order-sheet";
 import { DayListMobile } from "@/features/planning/day-list-mobile";
 import { PlanGrid } from "@/features/planning/plan-grid";
 import { PlanToolbar } from "@/features/planning/plan-toolbar";
@@ -48,9 +46,6 @@ export function PlanningV2() {
     dateTo,
   });
   const { data: machines = [] } = useMachines();
-  const { data: materials = [] } = useMaterials();
-  const { data: customers = [] } = useCustomers();
-
   const visibleMachines = useMemo(() => {
     if (!machineFilter) return machines;
     return machines.filter((m) => m.id === machineFilter);
@@ -197,14 +192,16 @@ export function PlanningV2() {
       )}
 
       {selectedCell ? (
-        <JobModal
+        <OrderSheet
           open
-          onClose={() => setSelectedCell(null)}
-          job={selectedCell.job}
-          machine={selectedCell.machine}
-          date={selectedCell.date}
-          materials={materials}
-          customers={customers}
+          onOpenChange={(open) => {
+            if (!open) setSelectedCell(null);
+          }}
+          orderId={selectedCell.job?.id ?? "new"}
+          prefill={{
+            machine_id: selectedCell.machine.id,
+            job_date: selectedCell.date,
+          }}
           onSaved={() => queryClient.invalidateQueries({ queryKey: ["jobs"] })}
         />
       ) : null}

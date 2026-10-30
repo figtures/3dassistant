@@ -12,8 +12,7 @@ import {
   Input,
   Skeleton,
 } from "@/components/ds";
-import { JobModal } from "@/components/planning/job-modal";
-import { useMaterials } from "@/hooks/use-data";
+import { OrderSheet } from "@/features/orders/order-sheet";
 import {
   DEFAULT_PAGE_SIZE,
   ORDER_TABS,
@@ -79,14 +78,13 @@ function OrdersV2Content() {
 
   const orderParam = searchParams.get("order");
   const sheetOpen = orderParam != null && orderParam !== "";
-  const editJobId = orderParam === "new" ? null : orderParam;
+  const sheetOrderId = orderParam === "new" ? "new" : orderParam;
 
   const [searchInput, setSearchInput] = useState(q);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 
   const { data: machines = [] } = useMachines();
   const { data: customers = [] } = useCustomers();
-  const { data: materials = [] } = useMaterials();
 
   const { data, isLoading, isError, refetch } = useOrders({
     q,
@@ -104,16 +102,6 @@ function OrdersV2Content() {
   const rows = data?.rows ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  const editJob = useMemo(
-    () => (editJobId ? rows.find((r) => r.id === editJobId) ?? null : null),
-    [editJobId, rows]
-  );
-  const modalMachine = useMemo(() => {
-    if (editJob?.machine) return editJob.machine;
-    if (editJob) return machines.find((m) => m.id === editJob.machine_id);
-    return machines[0];
-  }, [editJob, machines]);
 
   const patchUrl = useCallback(
     (patch: Record<string, string | null>) => {
@@ -457,22 +445,16 @@ function OrdersV2Content() {
         </>
       )}
 
-      {sheetOpen && modalMachine ? (
-        <JobModal
-          open
-          onClose={closeSheet}
-          job={editJob}
-          machine={modalMachine}
-          date={editJob?.job_date ?? new Date().toISOString().slice(0, 10)}
-          materials={materials}
-          customers={customers}
-          onSaved={() => {
-            queryClient.invalidateQueries({ queryKey: ["orders"] });
-            queryClient.invalidateQueries({ queryKey: ["jobs"] });
-            closeSheet();
-          }}
-        />
-      ) : null}
+      <OrderSheet
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          if (!open) closeSheet();
+        }}
+        orderId={sheetOrderId}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ["orders"] });
+        }}
+      />
     </div>
   );
 }
