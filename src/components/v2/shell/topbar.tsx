@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LifeBuoy, Menu, MessageCircleWarning, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { getCommandShortcutLabel } from "@/components/v2/command/use-command-shortcut";
 import { applyBreadcrumbLabels, getBreadcrumbs } from "@/lib/nav";
 import { useBreadcrumbLabelMap } from "@/hooks/use-breadcrumb-label";
@@ -10,16 +10,20 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ds";
 import { FleetPulse } from "@/components/v2/shell/fleet-pulse";
 import { UserMenu, type ShellUser } from "@/components/v2/shell/user-menu";
-import { useSupportReport } from "@/components/support/report-problem-modal";
+import { HelpMenu } from "@/components/v2/help/help-menu";
 
 export function TopBar({
   user,
   onOpenMobileNav,
   onOpenCommandPalette,
+  shortcutsOpen,
+  onShortcutsOpenChange,
 }: {
   user: ShellUser;
   onOpenMobileNav: () => void;
   onOpenCommandPalette: () => void;
+  shortcutsOpen: boolean;
+  onShortcutsOpenChange: (open: boolean) => void;
 }) {
   const pathname = usePathname();
   const labelMap = useBreadcrumbLabelMap();
@@ -28,8 +32,6 @@ export function TopBar({
     pathname,
     labelMap
   );
-  const { openReport } = useSupportReport();
-
   return (
     <header
       className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur-md lg:px-6"
@@ -98,27 +100,10 @@ export function TopBar({
             {getCommandShortcutLabel()}
           </kbd>
         </button>
-        <button
-          type="button"
-          onClick={() => openReport()}
-          className={cn(
-            "hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground outline-none transition-colors sm:inline-flex",
-            "hover:bg-accent hover:text-foreground focus-visible:shadow-[var(--focus-ring)]"
-          )}
-        >
-          <MessageCircleWarning className="size-4" aria-hidden />
-          Sorun bildir
-        </button>
-        <Link
-          href="/support"
-          className={cn(
-            "hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground outline-none transition-colors sm:inline-flex",
-            "hover:bg-accent hover:text-foreground focus-visible:shadow-[var(--focus-ring)]"
-          )}
-        >
-          <LifeBuoy className="size-4" aria-hidden />
-          Destek
-        </Link>
+        <HelpMenu
+          shortcutsOpen={shortcutsOpen}
+          onShortcutsOpenChange={onShortcutsOpenChange}
+        />
         <UserMenu user={user} />
       </div>
     </header>

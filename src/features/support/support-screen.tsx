@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Badge, Button, EmptyState, Skeleton } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import type { BadgeTone } from "@/components/ds/badge";
 import { useSupportReport } from "@/components/support/report-problem-modal";
 import { getSupportCategoryLabel } from "@/lib/support/categories";
@@ -56,11 +57,13 @@ export function SupportV2() {
   return (
     <div className="space-y-6 pb-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-            <LifeBuoy className="h-6 w-6 text-primary" aria-hidden />
-            Destek talepleri
-          </h1>
+        <div className="min-w-0 flex-1 space-y-1">
+          <HelpTitleRow>
+            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+              <LifeBuoy className="h-6 w-6 text-primary" aria-hidden />
+              Destek talepleri
+            </h1>
+          </HelpTitleRow>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Biletlerinizi görüntüleyin ve ekibimizle mesajlaşın. Genellikle 4 iş saati içinde yanıt
             veriyoruz.

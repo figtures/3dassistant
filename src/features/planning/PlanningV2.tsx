@@ -14,6 +14,7 @@ import { DayListMobile } from "@/features/planning/day-list-mobile";
 import { PlanGrid } from "@/features/planning/plan-grid";
 import { PlanToolbar } from "@/features/planning/plan-toolbar";
 import { Button, EmptyState, Skeleton } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import type { Job, Machine } from "@/types/database";
 import { todayIsoInIstanbul } from "@/lib/format";
 import { CalendarRange } from "lucide-react";
@@ -114,9 +115,11 @@ export function PlanningV2() {
   return (
     <div className="space-y-6 pb-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Üretim planı
-        </h1>
+        <HelpTitleRow>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Üretim planı
+          </h1>
+        </HelpTitleRow>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Makine ve güne göre siparişleri planlayın. Hücreye tıklayarak sipariş
           ekleyin veya düzenleyin.

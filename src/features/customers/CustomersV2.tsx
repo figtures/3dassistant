@@ -20,6 +20,7 @@ import {
   Input,
   Skeleton,
 } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
   CustomerImportDialog,
   type ImportPreviewRow,
@@ -332,7 +333,9 @@ function CustomersV2Content() {
   return (
     <div className="space-y-6 pb-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Müşteriler</h1>
+        <HelpTitleRow>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Müşteriler</h1>
+        </HelpTitleRow>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Müşteri kayıtları, sipariş geçmişi ve tahsilat özeti. Excel ile toplu içe ve dışa
           aktarabilirsiniz.

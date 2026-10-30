@@ -18,6 +18,7 @@ import {
   Input,
   Skeleton,
 } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
   CatalogCreateDialog,
   type CatalogCreateForm,
@@ -203,10 +204,12 @@ export function CatalogV2() {
   return (
     <div className="space-y-6 pb-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-            Katalog
-          </h1>
+        <div className="min-w-0 flex-1">
+          <HelpTitleRow>
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+              Katalog
+            </h1>
+          </HelpTitleRow>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
             Ürün vitrininiz — dosyalar, stok ve teklif metrikleri tek yerde.
           </p>

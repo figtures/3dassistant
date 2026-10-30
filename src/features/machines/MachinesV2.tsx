@@ -36,6 +36,7 @@ import {
   matchesStateFilter,
   mergeFleetLive,
 } from "@/features/machines/machine-utils";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
   Dialog,
   DialogContent,
@@ -357,9 +358,11 @@ function MachinesV2Content() {
   return (
     <div className="space-y-6 pb-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Makineler
-        </h1>
+        <HelpTitleRow>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Makineler
+          </h1>
+        </HelpTitleRow>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Yazıcı filonuzu bağlayın; baskı durumu, ilerleme ve sıcaklıkları tek
           ekrandan izleyin.

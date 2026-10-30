@@ -20,6 +20,7 @@ import {
 } from "@/features/printer-connect/methods";
 import type { PrinterVendor } from "@/lib/printer-cloud/types";
 import { PrinterConnectOAuthHandler } from "@/features/printer-connect/printer-connect-oauth-handler";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 
 export type PrinterConnectWizardMode = "dialog" | "page" | "embedded";
 
@@ -310,7 +311,9 @@ function PrinterConnectWizardInner({
             </Button>
           ) : null}
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Yazıcı bağla</h1>
+        <HelpTitleRow>
+          <h1 className="text-2xl font-semibold tracking-tight">Yazıcı bağla</h1>
+        </HelpTitleRow>
         {content}
         <Suspense fallback={null}>
           <PrinterConnectOAuthHandler onConnected={handleOAuthConnected} />

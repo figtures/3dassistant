@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Badge, Button, Card, CardContent, Skeleton } from "@/components/ds";
 import { PlanCards, type PlanCardRow } from "@/components/v2/billing/plan-cards";
 import { useSupportReport } from "@/components/support/report-problem-modal";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
   ENTITLEMENTS_QUERY_KEY,
   fetchEntitlements,
@@ -253,8 +254,10 @@ function BillingV2Content() {
       ) : null}
 
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Abonelik</h1>
+        <div className="min-w-0 flex-1 space-y-1">
+          <HelpTitleRow>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Abonelik</h1>
+          </HelpTitleRow>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Planınızı yönetin. Ödeme ve faturalar güvenli ödeme sağlayıcımız üzerinden işlenir.
           </p>

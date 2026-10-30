@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/format";
 import { SetupChecklistCard } from "@/features/onboarding/setup-checklist-card";
 import { SampleDataBanner } from "@/features/onboarding/sample-data-banner";
 import { AttentionList } from "@/features/dashboard/attention-list";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 
 function greetingForHour(hour: number): string {
   if (hour < 12) return "Günaydın";
@@ -36,9 +37,11 @@ export function DashboardV2({ displayName }: DashboardV2Props) {
       <SampleDataBanner />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <header className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {greeting}, {displayName}
-          </h1>
+          <HelpTitleRow>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              {greeting}, {displayName}
+            </h1>
+          </HelpTitleRow>
           <p className="text-sm text-muted-foreground">{todayLabel}</p>
         </header>
         <SetupChecklistCard className="w-full shrink-0 lg:max-w-sm" />

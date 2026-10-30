@@ -8,6 +8,7 @@ import { VENDOR_LABELS, type PrinterVendor } from "@/lib/printer-cloud/types";
 import { BRIDGE_VENDOR_LABELS, type BridgeVendor } from "@/lib/bridge/vendors";
 import type { Machine, MachineConnectionStatus } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 
 const CONNECTION_LABELS: Record<MachineConnectionStatus, string> = {
   connected: "Bağlı",
@@ -47,10 +48,12 @@ export function MachineLiveHeader({ machine, sseConnected, className }: Props) {
       data-testid="machine-detail-header"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {machine.name}
-          </h1>
+        <div className="min-w-0 flex-1 space-y-1">
+          <HelpTitleRow>
+            <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              {machine.name}
+            </h1>
+          </HelpTitleRow>
           {machine.model && (
             <p className="text-sm text-muted-foreground">{machine.model}</p>
           )}

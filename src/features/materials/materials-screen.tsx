@@ -13,6 +13,7 @@ import {
   Input,
   Skeleton,
 } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import { MaterialSheet } from "@/features/materials/material-sheet";
 import {
   MaterialsTable,
@@ -266,10 +267,12 @@ export function MaterialsV2() {
   return (
     <div className="space-y-6 pb-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-            Filament &amp; Malzeme
-          </h1>
+        <div className="min-w-0 flex-1">
+          <HelpTitleRow>
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+              Filament &amp; Malzeme
+            </h1>
+          </HelpTitleRow>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
             PETG, PLA ve diğer filament stoklarınızı renk bazında takip edin.
           </p>

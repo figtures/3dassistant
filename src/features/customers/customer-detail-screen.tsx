@@ -12,6 +12,7 @@ import {
   EmptyState,
   Skeleton,
 } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import { formatCurrency, formatDuration, formatGrams } from "@/lib/utils";
 import { formatCurrency as formatCurrencyV2 } from "@/lib/format";
 import { buildCustomerStatsMap } from "@/features/customers/customer-utils";
@@ -135,7 +136,9 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
       </Link>
 
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{customer.name}</h1>
+        <HelpTitleRow>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{customer.name}</h1>
+        </HelpTitleRow>
         {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
       </header>
 

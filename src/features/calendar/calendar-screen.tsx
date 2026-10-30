@@ -18,6 +18,7 @@ import {
 } from "date-fns";
 import { CalendarCheck, List } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 
 type CalendarView = "month" | "list";
 
@@ -56,11 +57,13 @@ export function CalendarV2() {
   return (
     <div className="space-y-6 pb-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-            <CalendarCheck className="h-6 w-6 text-primary" aria-hidden />
-            Teslim Takvimi
-          </h1>
+        <div className="min-w-0 flex-1 space-y-1">
+          <HelpTitleRow>
+            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+              <CalendarCheck className="h-6 w-6 text-primary" aria-hidden />
+              Teslim Takvimi
+            </h1>
+          </HelpTitleRow>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Siparişlerin teslim tarihlerini ay görünümünde veya listede takip edin. Bir siparişe
             tıklayarak düzenleyebilirsiniz.

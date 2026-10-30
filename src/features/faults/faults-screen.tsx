@@ -12,6 +12,7 @@ import { resolveVoiceParse, type VoiceParseSource } from "@/lib/voice-parse-clie
 import type { VoiceFieldConfidence } from "@/lib/voice-confidence";
 import type { Fault, FaultStatus } from "@/types/database";
 import { Button, EmptyState, Skeleton } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
   FAULT_STATUS_LABELS,
   type FaultStatusFilter,
@@ -229,10 +230,12 @@ function FaultsV2Content() {
   return (
     <div className="space-y-6 pb-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-            Arıza &amp; Bakım
-          </h1>
+        <div className="min-w-0 flex-1">
+          <HelpTitleRow>
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+              Arıza &amp; Bakım
+            </h1>
+          </HelpTitleRow>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
             Makine arızalarını kaydedin, duruş sürelerini takip edin.
           </p>

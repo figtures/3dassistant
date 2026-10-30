@@ -38,6 +38,7 @@ import {
   Input,
   Skeleton,
 } from "@/components/ds";
+import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import {
   CatalogSaleDialog,
   type SaleFormValues,
@@ -388,9 +389,11 @@ export function CatalogItemScreen({ itemId }: { itemId: string }) {
             <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               {item.sku}
             </p>
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-              {item.name}
-            </h1>
+            <HelpTitleRow>
+              <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+                {item.name}
+              </h1>
+            </HelpTitleRow>
             {item.description && (
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{item.description}</p>
             )}
