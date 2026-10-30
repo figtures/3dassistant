@@ -10,6 +10,10 @@ import {
   todayIsoInIstanbul,
 } from "@/lib/format";
 import { PlanCellAdd, PlanJobBlock } from "@/features/planning/plan-cell";
+import {
+  DraggablePlanJobBlock,
+  DroppablePlanCell,
+} from "@/features/planning/plan-dnd";
 import { cn } from "@/lib/utils";
 
 function MachineStateDot({ state }: { state: UiMachineState }) {
@@ -37,9 +41,22 @@ export type PlanGridProps = {
   dates: string[];
   jobMap: Map<string, Job[]>;
   onCellOpen: (machine: Machine, date: string, job: Job | null) => void;
+  dragEnabled?: boolean;
+  selectedJobId?: string | null;
+  onSelectJob?: (jobId: string | null) => void;
+  onMoveRequest?: (job: Job) => void;
 };
 
-export function PlanGrid({ machines, dates, jobMap, onCellOpen }: PlanGridProps) {
+export function PlanGrid({
+  machines,
+  dates,
+  jobMap,
+  onCellOpen,
+  dragEnabled = false,
+  selectedJobId = null,
+  onSelectJob,
+  onMoveRequest,
+}: PlanGridProps) {
   const today = todayIsoInIstanbul();
 
   return (
@@ -123,24 +140,61 @@ export function PlanGrid({ machines, dates, jobMap, onCellOpen }: PlanGridProps)
                       tabIndex={-1}
                       aria-label={ariaLabel}
                       className={cn(
-                        "border-b border-border p-1.5 align-top",
+                        "group/cell border-b border-border p-1.5 align-top",
                         isWeekendDate(date) && date !== today && "bg-surface-inset/40"
                       )}
                     >
-                      <div className="flex min-h-[52px] flex-col gap-1">
-                        {cellJobs.map((job) => (
-                          <PlanJobBlock
-                            key={job.id}
-                            job={job}
-                            onOpen={() => onCellOpen(machine, date, job)}
-                          />
-                        ))}
-                        <PlanCellAdd
-                          jobCount={cellJobs.length}
-                          onAdd={() => onCellOpen(machine, date, null)}
-                          label={`${machine.name}, ${formatPlanningDayMonth(date)} — yeni sipariş`}
-                        />
-                      </div>
+                      {(() => {
+                        const cellBody = (
+                          <>
+                            {cellJobs.map((job) =>
+                              dragEnabled ? (
+                                <DraggablePlanJobBlock
+                                  key={job.id}
+                                  job={job}
+                                  selected={selectedJobId === job.id}
+                                  onSelect={() => onSelectJob?.(job.id)}
+                                  onOpen={() => onCellOpen(machine, date, job)}
+                                  onMoveRequest={
+                                    onMoveRequest
+                                      ? () => onMoveRequest(job)
+                                      : undefined
+                                  }
+                                />
+                              ) : (
+                                <PlanJobBlock
+                                  key={job.id}
+                                  job={job}
+                                  onOpen={() => onCellOpen(machine, date, job)}
+                                />
+                              )
+                            )}
+                            <PlanCellAdd
+                              jobCount={cellJobs.length}
+                              onAdd={() => onCellOpen(machine, date, null)}
+                              label={`${machine.name}, ${formatPlanningDayMonth(date)} — yeni sipariş`}
+                            />
+                          </>
+                        );
+
+                        if (dragEnabled) {
+                          return (
+                            <DroppablePlanCell
+                              machineId={machine.id}
+                              date={date}
+                              className="flex min-h-[52px] flex-col gap-1"
+                            >
+                              {cellBody}
+                            </DroppablePlanCell>
+                          );
+                        }
+
+                        return (
+                          <div className="flex min-h-[52px] flex-col gap-1">
+                            {cellBody}
+                          </div>
+                        );
+                      })()}
                     </td>
                   );
                 })}

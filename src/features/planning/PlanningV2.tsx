@@ -12,7 +12,13 @@ import {
 import { OrderSheet } from "@/features/orders/order-sheet";
 import { DayListMobile } from "@/features/planning/day-list-mobile";
 import { PlanGrid } from "@/features/planning/plan-grid";
+import {
+  PlanDndProvider,
+  PlanMoveDialog,
+  usePlanJobsById,
+} from "@/features/planning/plan-dnd";
 import { PlanToolbar } from "@/features/planning/plan-toolbar";
+import { updateOrderSchedule } from "@/features/orders/use-order-mutations";
 import { Button, EmptyState, Skeleton } from "@/components/ds";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import type { Job, Machine } from "@/types/database";
@@ -37,6 +43,8 @@ export function PlanningV2() {
   const [addingMachine, setAddingMachine] = useState(false);
   const [newMachineName, setNewMachineName] = useState("");
   const [addMachineLoading, setAddMachineLoading] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [moveJob, setMoveJob] = useState<Job | null>(null);
 
   const dates = useMemo(() => getPlanningDates(days, offset), [days, offset]);
   const dateFrom = dates[0];
@@ -51,6 +59,8 @@ export function PlanningV2() {
     if (!machineFilter) return machines;
     return machines.filter((m) => m.id === machineFilter);
   }, [machines, machineFilter]);
+
+  const jobsById = usePlanJobsById(jobs);
 
   const jobMap = useMemo(() => {
     const map = new Map<string, Job[]>();
@@ -110,6 +120,52 @@ export function PlanningV2() {
 
   function openCell(machine: Machine, date: string, job: Job | null) {
     setSelectedCell({ machine, date, job });
+  }
+
+  async function handleJobMove(
+    jobId: string,
+    target: { machineId: string; date: string }
+  ) {
+    const job = jobsById.get(jobId);
+    if (!job) return;
+    if (
+      job.machine_id === target.machineId &&
+      job.job_date === target.date
+    ) {
+      return;
+    }
+
+    const previous = jobs;
+    const jobsQueryKey = ["jobs", { dateFrom, dateTo }] as const;
+    queryClient.setQueryData<Job[]>(
+      jobsQueryKey,
+      (old) =>
+        (old ?? []).map((j) =>
+          j.id === jobId
+            ? {
+                ...j,
+                machine_id: target.machineId,
+                job_date: target.date,
+              }
+            : j
+        )
+    );
+
+    const supabase = createClient();
+    const { error } = await updateOrderSchedule(supabase, jobId, {
+      machine_id: target.machineId,
+      job_date: target.date,
+    });
+
+    if (error) {
+      toast.error(error);
+      queryClient.setQueryData(jobsQueryKey, previous);
+      return;
+    }
+
+    toast.success("Sipariş planı güncellendi");
+    queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
   }
 
   return (
@@ -172,12 +228,28 @@ export function PlanningV2() {
       ) : (
         <>
           <div className="hidden lg:block">
-            <PlanGrid
-              machines={visibleMachines}
-              dates={dates}
-              jobMap={jobMap}
-              onCellOpen={openCell}
-            />
+            <PlanDndProvider
+              jobsById={jobsById}
+              onJobMove={handleJobMove}
+              renderOverlay={(job) => (
+                <div className="w-[160px] rounded-lg border border-border bg-card p-2 shadow-e2">
+                  <span className="truncate text-xs font-medium">
+                    {job.title ?? "Sipariş"}
+                  </span>
+                </div>
+              )}
+            >
+              <PlanGrid
+                machines={visibleMachines}
+                dates={dates}
+                jobMap={jobMap}
+                onCellOpen={openCell}
+                dragEnabled
+                selectedJobId={selectedJobId}
+                onSelectJob={setSelectedJobId}
+                onMoveRequest={setMoveJob}
+              />
+            </PlanDndProvider>
           </div>
           <DayListMobile
             dates={dates}
@@ -193,6 +265,21 @@ export function PlanningV2() {
           />
         </>
       )}
+
+      <PlanMoveDialog
+        open={moveJob != null}
+        job={moveJob}
+        machines={visibleMachines}
+        dates={dates}
+        onOpenChange={(open) => {
+          if (!open) setMoveJob(null);
+        }}
+        onConfirm={(machineId, date) => {
+          if (!moveJob) return;
+          void handleJobMove(moveJob.id, { machineId, date });
+          setMoveJob(null);
+        }}
+      />
 
       {selectedCell ? (
         <OrderSheet

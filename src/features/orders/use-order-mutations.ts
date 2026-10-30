@@ -34,6 +34,22 @@ export async function updateOrderStatus(
   return { error: null };
 }
 
+export async function updateOrderSchedule(
+  supabase: SupabaseClient,
+  orderId: string,
+  patch: { machine_id: string; job_date: string }
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("jobs")
+    .update({
+      machine_id: patch.machine_id,
+      job_date: patch.job_date,
+    })
+    .eq("id", orderId);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
 function stockWarning(
   form: OrderFormInput,
   materials: Material[],

@@ -20,6 +20,7 @@ import {
   PAGE_SIZE_OPTIONS,
   type OrderTabId,
 } from "@/features/orders/order-constants";
+import { OrdersBoard } from "@/features/orders/orders-board";
 import { OrdersTable } from "@/features/orders/orders-table";
 import { useOrders } from "@/features/orders/queries";
 import {
@@ -31,7 +32,7 @@ import {
   updateOrderStatus,
 } from "@/features/orders/use-order-mutations";
 import type { Job, JobStatus, PaymentStatus } from "@/types/database";
-import { ClipboardList, Plus, Search } from "lucide-react";
+import { ClipboardList, LayoutGrid, Plus, Search, Table2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -57,6 +58,8 @@ function OrdersV2Content() {
   const queryClient = useQueryClient();
   const confirmAction = useConfirm();
 
+  const view =
+    searchParams.get("view") === "board" ? ("board" as const) : ("table" as const);
   const tab = parseOrderTab(searchParams.get("tab"));
   const q = searchParams.get("q") ?? "";
   const machineId = searchParams.get("machine") ?? "";
@@ -87,7 +90,12 @@ function OrdersV2Content() {
   const { data: machines = [] } = useMachines();
   const { data: customers = [] } = useCustomers();
 
-  const { data, isLoading, isError, refetch } = useOrders({
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+  } = useOrders({
     q,
     tab,
     status: statusFilter.length ? statusFilter : undefined,
@@ -99,6 +107,8 @@ function OrdersV2Content() {
     page,
     pageSize: PAGE_SIZE_OPTIONS.includes(pageSize) ? pageSize : DEFAULT_PAGE_SIZE,
   });
+
+  const tableEnabled = view === "table";
 
   const rows = data?.rows ?? [];
   const total = data?.total ?? 0;
@@ -232,10 +242,46 @@ function OrdersV2Content() {
             senkron tutun.
           </p>
         </div>
-        <Button type="button" onClick={() => openOrder("new")}>
-          <Plus className="size-4" aria-hidden />
-          Yeni sipariş
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="flex rounded-lg border border-border bg-surface-inset p-1"
+            role="group"
+            aria-label="Görünüm"
+          >
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+                view === "table"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={view === "table"}
+              onClick={() => patchUrl({ view: null })}
+            >
+              <Table2 className="size-4" aria-hidden />
+              Liste
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+                view === "board"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={view === "board"}
+              onClick={() => patchUrl({ view: "board" })}
+            >
+              <LayoutGrid className="size-4" aria-hidden />
+              Pano
+            </button>
+          </div>
+          <Button type="button" onClick={() => openOrder("new")}>
+            <Plus className="size-4" aria-hidden />
+            Yeni sipariş
+          </Button>
+        </div>
       </header>
 
       <div
@@ -328,7 +374,18 @@ function OrdersV2Content() {
         />
       </div>
 
-      {bulkBar ? (
+      {view === "board" ? (
+        <OrdersBoard
+          q={q}
+          machineId={machineId}
+          customerId={customerId}
+          from={from}
+          to={to}
+          onOpenOrder={(id) => openOrder(id)}
+        />
+      ) : null}
+
+      {tableEnabled && bulkBar ? (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm">
           <span className="font-medium">{selectedIds.size} seçili</span>
           <Button
@@ -359,16 +416,16 @@ function OrdersV2Content() {
         </div>
       ) : null}
 
-      {isLoading ? (
+      {tableEnabled && isLoading ? (
         <Skeleton className="h-64 w-full rounded-xl" aria-busy="true" />
-      ) : isError ? (
+      ) : tableEnabled && isError ? (
         <div className="rounded-xl border border-border p-5" role="alert">
           <p className="text-sm">Liste yüklenemedi.</p>
           <Button type="button" size="sm" className="mt-3" onClick={() => refetch()}>
             Tekrar dene
           </Button>
         </div>
-      ) : rows.length === 0 ? (
+      ) : tableEnabled && rows.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
           title="Sipariş bulunamadı"
@@ -383,7 +440,7 @@ function OrdersV2Content() {
             </Button>
           }
         />
-      ) : (
+      ) : tableEnabled ? (
         <>
           <OrdersTable
             rows={rows}
@@ -446,7 +503,7 @@ function OrdersV2Content() {
             </div>
           </div>
         </>
-      )}
+      ) : null}
 
       <OrderSheet
         open={sheetOpen}

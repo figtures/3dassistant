@@ -112,6 +112,51 @@ export function useOrders(params: UseOrdersParams) {
   });
 }
 
+const BOARD_FETCH_LIMIT = 500;
+
+export type UseOrdersBoardParams = {
+  q?: string;
+  machineId?: string;
+  customerId?: string;
+  from?: string;
+  to?: string;
+};
+
+export function useOrdersBoard(params: UseOrdersBoardParams) {
+  return useQuery({
+    queryKey: ["orders-board", params],
+    queryFn: async (): Promise<Job[]> => {
+      const supabase = createClient();
+      let query = supabase.from("jobs").select(JOB_SELECT);
+
+      if (params.machineId) {
+        query = query.eq("machine_id", params.machineId);
+      }
+      if (params.customerId) {
+        query = query.eq("customer_id", params.customerId);
+      }
+      if (params.from) {
+        query = query.gte("delivery_date", params.from);
+      }
+      if (params.to) {
+        query = query.lte("delivery_date", params.to);
+      }
+
+      const q = params.q?.trim();
+      if (q) {
+        query = query.ilike("title", `%${q}%`);
+      }
+
+      const { data, error } = await query
+        .order("job_date", { ascending: false })
+        .limit(BOARD_FETCH_LIMIT);
+
+      if (error) throw error;
+      return (data ?? []) as Job[];
+    },
+  });
+}
+
 export function useOrderById(orderId: string | null) {
   return useQuery({
     queryKey: ["order", orderId],
