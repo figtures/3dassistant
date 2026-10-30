@@ -26,6 +26,44 @@ export interface Profile {
   updated_at: string;
 }
 
+export type WorkspaceUiVersion = "v1" | "v2";
+
+export const WORKSPACE_ROLES = [
+  "owner",
+  "admin",
+  "operator",
+  "accountant",
+  "viewer",
+] as const;
+
+export type WorkspaceRole = (typeof WORKSPACE_ROLES)[number];
+
+export interface Workspace {
+  id: string;
+  name: string;
+  created_at: string;
+  ui_version: WorkspaceUiVersion | null;
+}
+
+export interface WorkspaceMember {
+  workspace_id: string;
+  user_id: string;
+  role: WorkspaceRole;
+  created_at: string;
+  workspace?: Workspace;
+}
+
+export interface WorkspaceInvite {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: WorkspaceRole;
+  token_hash: string;
+  invited_by: string | null;
+  expires_at: string;
+  accepted_at: string | null;
+}
+
 export interface MaterialColor {
   id: string;
   material_id: string;
