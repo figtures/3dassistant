@@ -14,6 +14,12 @@ import {
   runWithConcurrency,
   selectLinksForTick,
 } from "@/lib/printer-cloud/sync-scheduler";
+import {
+  recordBridgeProbeStatus,
+  recordCloudSyncStatus,
+  recordCronAppOk,
+} from "@/lib/status/record-cron-status";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -41,11 +47,15 @@ export async function GET(request: NextRequest) {
   }
 
   const startedAt = Date.now();
+  let supabase: SupabaseClient | null = null;
+  let tickOk = false;
 
   try {
-    const supabase = createAdminClient();
+    supabase = createAdminClient();
+    const db = supabase;
+    await recordCronAppOk(db);
 
-    const { data: subs, error: subsError } = await supabase
+    const { data: subs, error: subsError } = await db
       .from("subscriptions")
       .select("user_id, sync_per_tick")
       .eq("cloud_monitoring", true)
@@ -60,13 +70,14 @@ export async function GET(request: NextRequest) {
       (subs ?? []).map((s) => [s.user_id as string, s.sync_per_tick as number])
     );
     if (perUserLimit.size === 0) {
+      tickOk = true;
       return NextResponse.json({ ok: true, tenants: 0, selected: 0, synced: 0, failed: 0 });
     }
 
     const userIds = [...perUserLimit.keys()];
     const candidates: LinkWithAccount[] = [];
     for (let i = 0; i < userIds.length; i += USER_CHUNK) {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("machine_cloud_links")
         .select(
           `id, machine_id, user_id, integration_account_id, external_device_id, enabled, last_synced_at,
@@ -115,12 +126,12 @@ export async function GET(request: NextRequest) {
           break;
         }
 
-        const result = await syncCloudLink(supabase, links[i], account, { updateAccount: false });
+        const result = await syncCloudLink(db, links[i], account, { updateAccount: false });
 
         if (result.authError) {
           authFailures++;
           skipped += links.length - i - 1;
-          await markAccountSynced(supabase, account, "error");
+          await markAccountSynced(db, account, "error");
           errors.push(`account ${account.id}: yetki hatası`);
           return;
         }
@@ -133,9 +144,10 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      if (anySuccess) await markAccountSynced(supabase, account, "active");
+      if (anySuccess) await markAccountSynced(db, account, "active");
     });
 
+    tickOk = true;
     return NextResponse.json({
       ok: true,
       tenants: perUserLimit.size,
@@ -152,5 +164,11 @@ export async function GET(request: NextRequest) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[cron/cloud-printer-sync]", message, e);
     return NextResponse.json({ error: message }, { status: 500 });
+  } finally {
+    if (supabase) {
+      const durationMs = Date.now() - startedAt;
+      await recordCloudSyncStatus(supabase, tickOk, durationMs);
+      await recordBridgeProbeStatus(supabase);
+    }
   }
 }

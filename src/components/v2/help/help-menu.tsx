@@ -14,8 +14,8 @@ import { useSupportReport } from "@/components/support/report-problem-modal";
 import { ShortcutsDialog } from "@/components/v2/help/shortcuts-dialog";
 import { cn } from "@/lib/utils";
 
-/** P3-16 sonrası durum sayfası menüde gösterilir */
-const SHOW_STATUS_PAGE = false;
+/** P3-16 · public /status */
+const SHOW_STATUS_PAGE = true;
 
 type HelpMenuProps = {
   shortcutsOpen: boolean;

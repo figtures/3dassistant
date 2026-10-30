@@ -8,6 +8,11 @@ import {
   shouldSendReminderNow,
   type OverdueJob,
 } from "@/lib/overdue-reminders";
+import {
+  recordCronAppOk,
+  recordEmailCronStatus,
+} from "@/lib/status/record-cron-status";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,8 +25,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const startedAt = Date.now();
+  let supabase: SupabaseClient | null = null;
+  let emailOk = false;
+
   try {
-    const supabase = createAdminClient();
+    supabase = createAdminClient();
+    await recordCronAppOk(supabase);
 
     const { data: jobs, error } = await supabase
       .from("jobs")
@@ -121,6 +131,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    emailOk = Boolean(process.env.RESEND_API_KEY) && errors.length === 0;
     return NextResponse.json({
       ok: true,
       checked: jobs?.length ?? 0,
@@ -133,5 +144,9 @@ export async function GET(request: NextRequest) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[cron/overdue-reminders]", message, e);
     return NextResponse.json({ error: message }, { status: 500 });
+  } finally {
+    if (supabase) {
+      await recordEmailCronStatus(supabase, emailOk, Date.now() - startedAt);
+    }
   }
 }
