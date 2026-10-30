@@ -169,6 +169,41 @@ export async function fetchAllOrdersForExport(
   return { rows, total };
 }
 
+export async function fetchAllOrderIdsForFilter(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  params: OrdersExportQueryParams
+): Promise<string[]> {
+  let countQuery = supabase
+    .from("jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", workspaceId);
+  countQuery = applyOrdersExportFilters(countQuery, params);
+  const { count, error: countError } = await countQuery;
+  if (countError) throw countError;
+
+  const total = count ?? 0;
+  const ids: string[] = [];
+  const pages = Math.ceil(total / PAGE_SIZE);
+
+  for (let page = 0; page < pages; page += 1) {
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    let query = supabase
+      .from("jobs")
+      .select("id")
+      .eq("user_id", workspaceId);
+    query = applyOrdersExportFilters(query, params);
+    const { data, error } = await query
+      .order("job_date", { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    ids.push(...((data ?? []) as { id: string }[]).map((row) => row.id));
+  }
+
+  return ids;
+}
+
 export async function fetchAllCustomersForExport(
   supabase: SupabaseClient,
   workspaceId: string,

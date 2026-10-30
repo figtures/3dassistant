@@ -15,6 +15,7 @@ export type OrdersTableProps = {
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
   allSelected: boolean;
+  selectIndeterminate?: boolean;
   onRowClick: (job: Job) => void;
   onEdit: (job: Job) => void;
   onDelete: (job: Job) => void;
@@ -29,6 +30,7 @@ export function OrdersTable({
   onToggleSelect,
   onToggleSelectAll,
   allSelected,
+  selectIndeterminate = false,
   onRowClick,
   onEdit,
   onDelete,
@@ -58,6 +60,9 @@ export function OrdersTable({
                     <input
                       type="checkbox"
                       checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = selectIndeterminate;
+                      }}
                       onChange={onToggleSelectAll}
                       aria-label="Tümünü seç"
                       className="size-4 rounded border-border"

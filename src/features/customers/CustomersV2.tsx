@@ -32,7 +32,11 @@ import {
 import { useTenantId } from "@/components/workspace/workspace-provider";
 import { usePermission } from "@/components/workspace/can";
 import { CustomersTable } from "@/features/customers/customers-table";
+import { bulkDeleteCustomers } from "@/features/customers/bulk-actions";
+import { BulkBar } from "@/components/ds/data-table/bulk-bar";
 import { TableExportMenu } from "@/components/ds/data-table/table-export-menu";
+import { formatBulkDeleteSummary } from "@/features/orders/bulk-actions";
+import { runTableExport } from "@/lib/export/run-table-export";
 import {
   buildCustomersExportColumns,
   type CustomerExportRow,
@@ -100,6 +104,8 @@ function CustomersV2Content() {
   const [importInvalid, setImportInvalid] = useState<ImportPreviewRow[]>([]);
   const [importing, setImporting] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+
   const [voiceText, setVoiceText] = useState("");
   const [voiceMatched, setVoiceMatched] = useState<string[]>([]);
   const [voiceFieldConfidence, setVoiceFieldConfidence] = useState<VoiceFieldConfidence>({});
@@ -150,6 +156,23 @@ function CustomersV2Content() {
     [customers, search]
   );
 
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [search]);
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id));
+  const selectIndeterminate =
+    selectedIds.size > 0 && !allFilteredSelected;
+
+  function handleToggleSelectAll() {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+      return;
+    }
+    setSelectedIds(new Set(filtered.map((c) => c.id)));
+  }
+
   const customerExportColumns = useMemo(
     () => buildCustomersExportColumns({ showFinance }),
     [showFinance]
@@ -178,6 +201,51 @@ function CustomersV2Content() {
     },
     [tenantId, search, statsMap]
   );
+
+  async function handleBulkDeleteCustomers() {
+    const ids = [...selectedIds];
+    if (!ids.length) return;
+    const ok = await confirmAction({
+      title: "Seçili müşteriler silinsin mi?",
+      description: `${ids.length} kayıt kalıcı olarak silinecek. Geçmiş siparişler korunur.`,
+      confirmLabel: "Sil",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    const supabase = createClient();
+    const result = await bulkDeleteCustomers(supabase, tenantId, ids);
+    if (result.error) toast.error(result.error);
+    else {
+      toast.success(
+        formatBulkDeleteSummary(result.updated, result.skipped, "müşteri")
+      );
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+    }
+  }
+
+  async function handleBulkExportSelected(format: "csv" | "xlsx") {
+    const ids = selectedIds;
+    if (!ids.size || !canExport) return;
+    try {
+      await runTableExport({
+        tableId: "customers",
+        format,
+        filenameBase: "musteriler_secili",
+        sheetName: "Müşteriler",
+        totalCount: ids.size,
+        serverQuery: "",
+        columns: customerExportColumns,
+        fetchRows: async () => {
+          const rows = await fetchCustomersForExport();
+          return rows.filter((r) => ids.has(r.id));
+        },
+      });
+      toast.success(`${ids.size} müşteri dışa aktarıldı`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Dışa aktarma başarısız");
+    }
+  }
 
   function openCreate() {
     setEditingId(null);
@@ -459,14 +527,65 @@ function CustomersV2Content() {
           }
         />
       ) : (
-        <CustomersTable
-          customers={filtered}
-          statsMap={statsMap}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-          showFinance={showFinance}
-          canEdit={canEditCustomers}
-        />
+        <>
+          {canEditCustomers && selectedIds.size > 0 ? (
+            <BulkBar count={selectedIds.size} label="müşteri seçili" onClear={() => setSelectedIds(new Set())}>
+              {canExport ? (
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => void handleBulkExportSelected("csv")}
+                  >
+                    CSV dışa aktar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => void handleBulkExportSelected("xlsx")}
+                  >
+                    Excel dışa aktar
+                  </Button>
+                </>
+              ) : null}
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-destructive"
+                onClick={() => void handleBulkDeleteCustomers()}
+              >
+                Sil
+              </Button>
+            </BulkBar>
+          ) : null}
+          <CustomersTable
+            customers={filtered}
+            statsMap={statsMap}
+            selectedIds={canEditCustomers ? selectedIds : undefined}
+            onToggleSelect={
+              canEditCustomers
+                ? (id) => {
+                    setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id);
+                      else next.add(id);
+                      return next;
+                    });
+                  }
+                : undefined
+            }
+            onToggleSelectAll={canEditCustomers ? handleToggleSelectAll : undefined}
+            allSelected={allFilteredSelected}
+            selectIndeterminate={selectIndeterminate}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            showFinance={showFinance}
+            canEdit={canEditCustomers}
+          />
+        </>
       )}
 
       <CustomerSheet

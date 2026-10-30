@@ -29,6 +29,18 @@ import {
   parseOrderTab,
 } from "@/features/orders/order-utils";
 import {
+  bulkDeleteJobs,
+  bulkMarkJobsPaid,
+  bulkPatchJobs,
+  bulkShiftJobDeliveryDates,
+  bulkUpdateJobStatus,
+  formatBulkDeleteSummary,
+  formatBulkSummary,
+  restoreJobStatuses,
+  showBulkMutationToast,
+} from "@/features/orders/bulk-actions";
+import { OrdersBulkPanel } from "@/features/orders/orders-bulk-panel";
+import {
   deleteOrder,
   updateOrderStatus,
 } from "@/features/orders/use-order-mutations";
@@ -40,7 +52,10 @@ import { SavedViewsToolbar } from "@/components/ds/data-table/saved-views";
 import { TableExportMenu } from "@/components/ds/data-table/table-export-menu";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useTenantId } from "@/components/workspace/workspace-provider";
-import { fetchAllOrdersForExport } from "@/lib/export/server/fetch-rows";
+import {
+  fetchAllOrderIdsForFilter,
+  fetchAllOrdersForExport,
+} from "@/lib/export/server/fetch-rows";
 import {
   buildOrdersExportColumns,
   ORDERS_EXPORT_COLUMN_IDS,
@@ -68,6 +83,7 @@ function OrdersV2Content() {
   const confirmAction = useConfirm();
   const canEditOrders = usePermission("orders.edit");
   const showFinance = usePermission("finance.view");
+  const canEditFinance = usePermission("finance.edit");
   const canExport = usePermission("export.data");
   const tenantId = useTenantId();
 
@@ -139,9 +155,22 @@ function OrdersV2Content() {
 
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [tab, q, machineId, customerId, from, to, page, pageSize]);
+  }, [
+    tab,
+    q,
+    machineId,
+    customerId,
+    from,
+    to,
+    page,
+    pageSize,
+    statusFilter,
+    paymentFilter,
+  ]);
 
-  const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const allPageSelected =
+    rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const allFilteredSelected = total > 0 && selectedIds.size === total;
 
   function setTab(next: OrderTabId) {
     patchUrl({
@@ -187,47 +216,175 @@ function OrdersV2Content() {
     }
   }
 
+  const orderFilterParams = useMemo(
+    () => ({
+      tab,
+      q,
+      status: statusFilter.length ? statusFilter : undefined,
+      payment: paymentFilter.length ? paymentFilter : undefined,
+      machineId: machineId || undefined,
+      customerId: customerId || undefined,
+      from: from || undefined,
+      to: to || undefined,
+    }),
+    [
+      tab,
+      q,
+      statusFilter,
+      paymentFilter,
+      machineId,
+      customerId,
+      from,
+      to,
+    ]
+  );
+
+  function invalidateOrders() {
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
+    queryClient.invalidateQueries({ queryKey: ["jobs"] });
+  }
+
+  async function handleToggleSelectAll() {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+      return;
+    }
+    if (allPageSelected && total > rows.length) {
+      const ok = await confirmAction({
+        title: "Filtreye uyan tüm siparişler seçilsin mi?",
+        description: `${total} sipariş seçilecek (tüm sayfalar).`,
+      });
+      if (!ok) return;
+      const supabase = createClient();
+      const ids = await fetchAllOrderIdsForFilter(
+        supabase,
+        tenantId,
+        orderFilterParams
+      );
+      setSelectedIds(new Set(ids));
+      return;
+    }
+    if (allPageSelected) {
+      setSelectedIds(new Set());
+      return;
+    }
+    setSelectedIds(new Set(rows.map((r) => r.id)));
+  }
+
   async function handleBulkStatus(status: JobStatus) {
-    if (!selectedIds.size) return;
+    const ids = [...selectedIds];
+    if (!ids.length) return;
     const ok = await confirmAction({
       title: "Toplu durum değişikliği",
-      description: `${selectedIds.size} siparişin durumu güncellenecek.`,
+      description: `${ids.length} siparişin durumu güncellenecek.`,
     });
     if (!ok) return;
     const supabase = createClient();
-    const { error } = await supabase
-      .from("jobs")
-      .update({ status })
-      .in("id", [...selectedIds]);
-    if (error) toast.error(error.message);
+    const { result, undo } = await bulkUpdateJobStatus(
+      supabase,
+      tenantId,
+      ids,
+      status
+    );
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    showBulkMutationToast(
+      formatBulkSummary(result.updated, result.skipped, "sipariş"),
+      {
+        undo: async () => {
+          const undoResult = await restoreJobStatuses(supabase, tenantId, undo);
+          if (undoResult.error) toast.error(undoResult.error);
+          else {
+            toast.success(
+              formatBulkSummary(undoResult.updated, undoResult.skipped, "sipariş")
+            );
+            invalidateOrders();
+          }
+        },
+      }
+    );
+    setSelectedIds(new Set());
+    invalidateOrders();
+  }
+
+  async function handleBulkAssignMachine(machineId: string) {
+    const ids = [...selectedIds];
+    if (!ids.length || !machineId) return;
+    const supabase = createClient();
+    const result = await bulkPatchJobs(supabase, tenantId, ids, {
+      machine_id: machineId,
+    });
+    if (result.error) toast.error(result.error);
     else {
-      toast.success(`${selectedIds.size} sipariş güncellendi`);
+      showBulkMutationToast(
+        formatBulkSummary(result.updated, result.skipped, "sipariş")
+      );
       setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      invalidateOrders();
+    }
+  }
+
+  async function handleBulkShiftDelivery(days: number) {
+    const ids = [...selectedIds];
+    if (!ids.length) return;
+    const supabase = createClient();
+    const result = await bulkShiftJobDeliveryDates(
+      supabase,
+      tenantId,
+      ids,
+      days
+    );
+    if (result.error) toast.error(result.error);
+    else {
+      showBulkMutationToast(
+        formatBulkSummary(result.updated, result.skipped, "sipariş")
+      );
+      setSelectedIds(new Set());
+      invalidateOrders();
+    }
+  }
+
+  async function handleBulkMarkPaid() {
+    const ids = [...selectedIds];
+    if (!ids.length) return;
+    const ok = await confirmAction({
+      title: "Ödendi olarak işaretle",
+      description: `${ids.length} siparişin ödemesi tamamlandı olarak kaydedilecek.`,
+    });
+    if (!ok) return;
+    const supabase = createClient();
+    const result = await bulkMarkJobsPaid(supabase, tenantId, ids);
+    if (result.error) toast.error(result.error);
+    else {
+      showBulkMutationToast(
+        formatBulkSummary(result.updated, result.skipped, "sipariş")
+      );
+      setSelectedIds(new Set());
+      invalidateOrders();
     }
   }
 
   async function handleBulkDelete() {
-    if (!selectedIds.size) return;
+    const ids = [...selectedIds];
+    if (!ids.length) return;
     const ok = await confirmAction({
       title: "Seçili siparişler silinsin mi?",
-      description: `${selectedIds.size} kayıt kalıcı olarak silinecek.`,
+      description: `${ids.length} kayıt kalıcı olarak silinecek.`,
       confirmLabel: "Sil",
       tone: "destructive",
     });
     if (!ok) return;
     const supabase = createClient();
-    const { error } = await supabase
-      .from("jobs")
-      .delete()
-      .in("id", [...selectedIds]);
-    if (error) toast.error(error.message);
+    const result = await bulkDeleteJobs(supabase, tenantId, ids);
+    if (result.error) toast.error(result.error);
     else {
-      toast.success(`${selectedIds.size} sipariş silindi`);
+      toast.success(
+        formatBulkDeleteSummary(result.updated, result.skipped, "sipariş")
+      );
       setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      invalidateOrders();
     }
   }
 
@@ -463,34 +620,18 @@ function OrdersV2Content() {
       ) : null}
 
       {tableEnabled && bulkBar && canEditOrders ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm">
-          <span className="font-medium">{selectedIds.size} seçili</span>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => void handleBulkStatus("in_progress")}
-          >
-            Üretime al
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => void handleBulkStatus("completed")}
-          >
-            Tamamla
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="text-destructive"
-            onClick={() => void handleBulkDelete()}
-          >
-            Sil
-          </Button>
-        </div>
+        <OrdersBulkPanel
+          count={selectedIds.size}
+          machines={machines}
+          showFinance={showFinance}
+          canEditFinance={canEditFinance}
+          onClear={() => setSelectedIds(new Set())}
+          onStatus={(status) => void handleBulkStatus(status)}
+          onAssignMachine={(id) => void handleBulkAssignMachine(id)}
+          onShiftDelivery={(days) => void handleBulkShiftDelivery(days)}
+          onMarkPaid={() => void handleBulkMarkPaid()}
+          onDelete={() => void handleBulkDelete()}
+        />
       ) : null}
 
       {tableEnabled && isLoading ? (
@@ -532,11 +673,11 @@ function OrdersV2Content() {
                 return next;
               });
             }}
-            onToggleSelectAll={() => {
-              if (allSelected) setSelectedIds(new Set());
-              else setSelectedIds(new Set(rows.map((r) => r.id)));
-            }}
-            allSelected={allSelected}
+            onToggleSelectAll={() => void handleToggleSelectAll()}
+            allSelected={allFilteredSelected || allPageSelected}
+            selectIndeterminate={
+              selectedIds.size > 0 && !allFilteredSelected && !allPageSelected
+            }
             onRowClick={(job) => openOrder(job.id)}
             onEdit={(job) => openOrder(job.id)}
             onDelete={(job) => void handleDelete(job)}

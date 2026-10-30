@@ -14,6 +14,7 @@ import { getMaterialColors, getMaterialTotalStock } from "@/lib/materials";
 import { isLowStock, lowStockThreshold } from "@/lib/stock";
 import { cn, formatCurrency, formatGrams } from "@/lib/utils";
 import type { Material, MaterialColor } from "@/types/database";
+import type { BulkStockColorTarget } from "@/features/materials/bulk-actions";
 import {
   ChevronDown,
   ChevronRight,
@@ -77,23 +78,49 @@ export type MaterialsTableProps = {
   expandedIds: Set<string>;
   onToggleExpand: (materialId: string) => void;
   actions: MaterialsTableActions;
+  selectedColors?: Set<string>;
+  onToggleColorSelect?: (target: BulkStockColorTarget) => void;
+  onToggleSelectAllColors?: () => void;
+  allColorsSelected?: boolean;
+  selectIndeterminate?: boolean;
 };
 
 function MaterialColorRow({
   material,
   color,
   actions,
+  selected,
+  onToggleSelect,
 }: {
   material: Material;
   color: MaterialColor;
   actions: MaterialsTableActions;
+  selected?: boolean;
+  onToggleSelect?: (target: BulkStockColorTarget) => void;
 }) {
   const grams = color.stock_grams ?? 0;
   const critical = isLowStock(grams, lowStockThreshold(color.low_stock_grams));
 
   return (
     <tr className="border-b border-border/60 bg-surface-1/40 last:border-0">
-      <td className="px-4 py-2.5 pl-10 text-sm text-muted-foreground" colSpan={2}>
+      <td className="w-10 px-3 py-2.5">
+        {onToggleSelect ? (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() =>
+              onToggleSelect({
+                colorId: color.id,
+                materialId: material.id,
+                currentGrams: grams,
+              })
+            }
+            aria-label={`${color.color_name} seç`}
+            className="size-4 rounded border-border"
+          />
+        ) : null}
+      </td>
+      <td className="px-4 py-2.5 pl-4 text-sm text-muted-foreground" colSpan={2}>
         <span className="inline-flex items-center gap-2">
           <ColorSwatch hex={color.hex_code} />
           {color.color_name}
@@ -137,7 +164,13 @@ export function MaterialsTable({
   expandedIds,
   onToggleExpand,
   actions,
+  selectedColors,
+  onToggleColorSelect,
+  onToggleSelectAllColors,
+  allColorsSelected = false,
+  selectIndeterminate = false,
 }: MaterialsTableProps) {
+  const selectionEnabled = selectedColors != null && onToggleColorSelect != null;
   const sorted = useMemo(
     () =>
       [...materials].sort((a, b) =>
@@ -152,6 +185,20 @@ export function MaterialsTable({
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-border bg-surface-1 text-xs text-muted-foreground">
             <tr>
+              <th className="w-10 px-3 py-3 font-medium" scope="col">
+                {selectionEnabled ? (
+                  <input
+                    type="checkbox"
+                    checked={allColorsSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = selectIndeterminate;
+                    }}
+                    onChange={() => onToggleSelectAllColors?.()}
+                    aria-label="Tüm renkleri seç"
+                    className="size-4 rounded border-border"
+                  />
+                ) : null}
+              </th>
               <th className="w-10 px-4 py-3 font-medium" scope="col" />
               <th className="px-4 py-3 font-medium" scope="col">
                 Malzeme
@@ -181,6 +228,7 @@ export function MaterialsTable({
               return (
                 <Fragment key={mat.id}>
                   <tr className="border-b border-border/80 hover:bg-accent/30">
+                    <td className="px-3 py-3" />
                     <td className="px-2 py-3">
                       {colors.length > 0 ? (
                         <Button
@@ -254,6 +302,8 @@ export function MaterialsTable({
                           material={mat}
                           color={c}
                           actions={actions}
+                          selected={selectedColors?.has(c.id)}
+                          onToggleSelect={onToggleColorSelect}
                         />
                       ))
                     : null}
@@ -331,6 +381,21 @@ export function MaterialsTable({
                           className="flex flex-wrap items-center justify-between gap-2 text-sm"
                         >
                           <span className="inline-flex items-center gap-2">
+                            {onToggleColorSelect ? (
+                              <input
+                                type="checkbox"
+                                checked={selectedColors?.has(c.id)}
+                                onChange={() =>
+                                  onToggleColorSelect({
+                                    colorId: c.id,
+                                    materialId: mat.id,
+                                    currentGrams: grams,
+                                  })
+                                }
+                                aria-label={`${c.color_name} seç`}
+                                className="size-4 rounded border-border"
+                              />
+                            ) : null}
                             <ColorSwatch hex={c.hex_code} />
                             {c.color_name}
                             {critical ? (

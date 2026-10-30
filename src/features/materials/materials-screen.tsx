@@ -19,6 +19,12 @@ import {
   MaterialsTable,
 } from "@/features/materials/materials-table";
 import { StockAdjustDialog } from "@/features/materials/stock-adjust-dialog";
+import { BulkStockAdjustDialog } from "@/features/materials/bulk-stock-adjust-dialog";
+import {
+  bulkApplyStockDelta,
+  type BulkStockColorTarget,
+} from "@/features/materials/bulk-actions";
+import { BulkBar } from "@/components/ds/data-table/bulk-bar";
 import {
   deleteMaterial,
   emptyColorRow,
@@ -31,6 +37,7 @@ import type { Material, MaterialColor } from "@/types/database";
 import { useTenantId } from "@/components/workspace/workspace-provider";
 import { isLowStock, lowStockThreshold } from "@/lib/stock";
 import { cn } from "@/lib/utils";
+import { formatBulkSummary } from "@/features/orders/bulk-actions";
 import { Cylinder, Package, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -81,6 +88,13 @@ export function MaterialsV2() {
   const [adjustValue, setAdjustValue] = useState("");
   const [adjustSaving, setAdjustSaving] = useState(false);
 
+  const [selectedColors, setSelectedColors] = useState<
+    Map<string, BulkStockColorTarget>
+  >(() => new Map());
+  const [bulkAdjustOpen, setBulkAdjustOpen] = useState(false);
+  const [bulkDelta, setBulkDelta] = useState("");
+  const [bulkSaving, setBulkSaving] = useState(false);
+
   const filtered = useMemo(() => {
     let list = materials;
     if (stockFilter) {
@@ -100,6 +114,73 @@ export function MaterialsV2() {
       );
     });
   }, [materials, search, stockFilter]);
+
+  const visibleColorTargets = useMemo(() => {
+    const targets: BulkStockColorTarget[] = [];
+    for (const mat of filtered) {
+      for (const color of getMaterialColors(mat)) {
+        targets.push({
+          colorId: color.id,
+          materialId: mat.id,
+          currentGrams: color.stock_grams ?? 0,
+        });
+      }
+    }
+    return targets;
+  }, [filtered]);
+
+  useEffect(() => {
+    setSelectedColors(new Map());
+  }, [search, stockFilter]);
+
+  const allColorsSelected =
+    visibleColorTargets.length > 0 &&
+    visibleColorTargets.every((t) => selectedColors.has(t.colorId));
+  const selectIndeterminate =
+    selectedColors.size > 0 && !allColorsSelected;
+
+  function handleToggleColorSelect(target: BulkStockColorTarget) {
+    setSelectedColors((prev) => {
+      const next = new Map(prev);
+      if (next.has(target.colorId)) next.delete(target.colorId);
+      else next.set(target.colorId, target);
+      return next;
+    });
+  }
+
+  function handleToggleSelectAllColors() {
+    if (allColorsSelected) {
+      setSelectedColors(new Map());
+      return;
+    }
+    const next = new Map<string, BulkStockColorTarget>();
+    for (const t of visibleColorTargets) {
+      next.set(t.colorId, t);
+    }
+    setSelectedColors(next);
+  }
+
+  async function handleBulkStockSave() {
+    const targets = [...selectedColors.values()];
+    if (!targets.length) return;
+    const delta = parseInt(bulkDelta, 10);
+    if (Number.isNaN(delta)) {
+      toast.error("Geçerli bir gram değişimi girin");
+      return;
+    }
+    setBulkSaving(true);
+    const supabase = createClient();
+    const result = await bulkApplyStockDelta(supabase, targets, delta);
+    if (result.error) toast.error(result.error);
+    else {
+      toast.success(formatBulkSummary(result.updated, result.skipped, "renk"));
+      setSelectedColors(new Map());
+      setBulkAdjustOpen(false);
+      setBulkDelta("");
+      await queryClient.invalidateQueries({ queryKey: ["materials"] });
+    }
+    setBulkSaving(false);
+  }
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -334,12 +415,35 @@ export function MaterialsV2() {
           description="Arama terimini değiştirmeyi deneyin."
         />
       ) : (
-        <MaterialsTable
-          materials={filtered}
-          expandedIds={expandedIds}
-          onToggleExpand={toggleExpand}
-          actions={tableActions}
-        />
+        <>
+          {selectedColors.size > 0 ? (
+            <BulkBar
+              count={selectedColors.size}
+              label="renk seçili"
+              onClear={() => setSelectedColors(new Map())}
+            >
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setBulkAdjustOpen(true)}
+              >
+                Stok düzelt
+              </Button>
+            </BulkBar>
+          ) : null}
+          <MaterialsTable
+            materials={filtered}
+            expandedIds={expandedIds}
+            onToggleExpand={toggleExpand}
+            actions={tableActions}
+            selectedColors={new Set(selectedColors.keys())}
+            onToggleColorSelect={handleToggleColorSelect}
+            onToggleSelectAllColors={handleToggleSelectAllColors}
+            allColorsSelected={allColorsSelected}
+            selectIndeterminate={selectIndeterminate}
+          />
+        </>
       )}
 
       <MaterialSheet
@@ -363,6 +467,16 @@ export function MaterialsV2() {
         onValueChange={setAdjustValue}
         onSave={() => void handleAdjustSave()}
         saving={adjustSaving}
+      />
+
+      <BulkStockAdjustDialog
+        open={bulkAdjustOpen}
+        onOpenChange={setBulkAdjustOpen}
+        colorCount={selectedColors.size}
+        deltaValue={bulkDelta}
+        onDeltaChange={setBulkDelta}
+        onSave={() => void handleBulkStockSave()}
+        saving={bulkSaving}
       />
     </div>
   );

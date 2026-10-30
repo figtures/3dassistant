@@ -13,6 +13,11 @@ import {
 export type CustomersTableProps = {
   customers: Customer[];
   statsMap: Map<string, CustomerStats>;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
+  allSelected?: boolean;
+  selectIndeterminate?: boolean;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   showFinance?: boolean;
@@ -22,12 +27,19 @@ export type CustomersTableProps = {
 export function CustomersTable({
   customers,
   statsMap,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
+  allSelected = false,
+  selectIndeterminate = false,
   onEdit,
   onDelete,
   showFinance = true,
   canEdit = true,
 }: CustomersTableProps) {
+  const selectionEnabled = canEdit && selectedIds != null && onToggleSelect != null;
   const headers = [
+    ...(selectionEnabled ? ([""] as const) : []),
     "Ad",
     "Firma",
     "İletişim",
@@ -43,6 +55,20 @@ export function CustomersTable({
           <table className="w-full min-w-[880px] text-sm">
             <thead className="sticky top-0 z-[1] bg-surface-2">
               <tr className="border-b border-border text-left text-muted-foreground">
+                {selectionEnabled ? (
+                  <th className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = selectIndeterminate;
+                      }}
+                      onChange={() => onToggleSelectAll?.()}
+                      aria-label="Tümünü seç"
+                      className="size-4 rounded border-border"
+                    />
+                  </th>
+                ) : null}
                 {headers.map((h) => (
                   <th key={h || "actions"} className="px-4 py-3 font-medium">
                     {h}
@@ -58,6 +84,17 @@ export function CustomersTable({
                     key={c.id}
                     className="border-b border-border/60 transition-colors hover:bg-surface-2/50"
                   >
+                    {selectionEnabled ? (
+                      <td className="px-3 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(c.id)}
+                          onChange={() => onToggleSelect(c.id)}
+                          aria-label={`${c.name} seç`}
+                          className="size-4 rounded border-border"
+                        />
+                      </td>
+                    ) : null}
                     <td className="px-4 py-3">
                       <Link
                         href={`/customers/${c.id}`}
