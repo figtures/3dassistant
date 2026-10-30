@@ -5,6 +5,7 @@ import {
   getBreadcrumbs,
   groupNavItems,
   NAV_ITEMS,
+  SETTINGS_NAV,
 } from "@/lib/nav";
 
 describe("getBreadcrumbs", () => {
@@ -64,5 +65,38 @@ describe("groupNavItems", () => {
     const groups = groupNavItems(NAV_ITEMS, { isAdmin: false });
     const production = groups.find((g) => g.section === "production");
     assert.ok(production?.items.some((i) => i.id === "orders"));
+  });
+
+  it("includes settings in account section", () => {
+    const groups = groupNavItems(NAV_ITEMS, { isAdmin: false });
+    const account = groups.find((g) => g.section === "account");
+    assert.ok(account?.items.some((i) => i.id === "settings"));
+  });
+});
+
+describe("SETTINGS_NAV", () => {
+  it("lists core settings routes", () => {
+    const hrefs = SETTINGS_NAV.map((i) => i.href);
+    assert.ok(hrefs.includes("/settings/profile"));
+    assert.ok(hrefs.includes("/settings/workspace"));
+    assert.ok(hrefs.includes("/settings/team"));
+    assert.ok(hrefs.includes("/settings/appearance"));
+    assert.ok(hrefs.includes("/settings/billing"));
+  });
+
+  it("hides audit for non-admin filter", () => {
+    const visible = SETTINGS_NAV.filter((i) => !i.adminOnly);
+    assert.ok(!visible.some((i) => i.href === "/settings/audit"));
+    assert.ok(SETTINGS_NAV.some((i) => i.href === "/settings/audit"));
+  });
+});
+
+describe("getBreadcrumbs settings", () => {
+  it("labels nested settings paths", () => {
+    const crumbs = getBreadcrumbs("/settings/profile");
+    assert.equal(crumbs.length, 2);
+    assert.equal(crumbs[0].label, "Ayarlar");
+    assert.equal(crumbs[0].href, "/settings");
+    assert.equal(crumbs[1].label, "Profil");
   });
 });

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import { Providers } from "@/components/providers";
 import { getUiVersion } from "@/lib/flags/ui-version";
+import { parseUiDensity } from "@/lib/shell/density-cookie";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,13 +29,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const ui = await getUiVersion();
+  const jar = await cookies();
+  const density = parseUiDensity(jar.get("pf_density")?.value);
 
   return (
     <html
       lang="tr"
       data-ui={ui}
       data-theme="dark"
-      data-density="comfortable"
+      data-density={density}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body

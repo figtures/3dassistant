@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
+  Bell,
+  Building2,
   Calendar,
   CalendarDays,
   ClipboardList,
@@ -9,8 +11,13 @@ import {
   LayoutGrid,
   LifeBuoy,
   Package,
+  Palette,
+  Plug,
+  ScrollText,
+  Settings,
   ShoppingCart,
   ShieldCheck,
+  User,
   Users,
   Cpu,
 } from "lucide-react";
@@ -125,6 +132,13 @@ export const NAV_ITEMS: NavItem[] = [
     section: "account",
   },
   {
+    id: "settings",
+    label: "Ayarlar",
+    href: "/settings",
+    icon: Settings,
+    section: "account",
+  },
+  {
     id: "support-admin",
     label: "Destek Yönetimi",
     href: "/support/admin",
@@ -134,7 +148,65 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export const SETTINGS_NAV: NavItem[] = [];
+export const SETTINGS_NAV: NavItem[] = [
+  {
+    id: "settings-profile",
+    label: "Profil",
+    href: "/settings/profile",
+    icon: User,
+    section: "account",
+  },
+  {
+    id: "settings-workspace",
+    label: "Çalışma alanı",
+    href: "/settings/workspace",
+    icon: Building2,
+    section: "account",
+  },
+  {
+    id: "settings-team",
+    label: "Ekip",
+    href: "/settings/team",
+    icon: Users,
+    section: "account",
+  },
+  {
+    id: "settings-notifications",
+    label: "Bildirimler",
+    href: "/settings/notifications",
+    icon: Bell,
+    section: "account",
+  },
+  {
+    id: "settings-integrations",
+    label: "Entegrasyonlar",
+    href: "/settings/integrations",
+    icon: Plug,
+    section: "account",
+  },
+  {
+    id: "settings-billing",
+    label: "Abonelik ve fatura",
+    href: "/settings/billing",
+    icon: CreditCard,
+    section: "account",
+  },
+  {
+    id: "settings-audit",
+    label: "Denetim kaydı",
+    href: "/settings/audit",
+    icon: ScrollText,
+    section: "account",
+    adminOnly: true,
+  },
+  {
+    id: "settings-appearance",
+    label: "Görünüm",
+    href: "/settings/appearance",
+    icon: Palette,
+    section: "account",
+  },
+];
 
 const ROUTE_LABELS: Record<string, string> = {
   dashboard: "Genel Bakış",
@@ -149,7 +221,13 @@ const ROUTE_LABELS: Record<string, string> = {
   billing: "Abonelik",
   support: "Destek",
   settings: "Ayarlar",
+  profile: "Profil",
+  workspace: "Çalışma alanı",
   team: "Ekip",
+  notifications: "Bildirimler",
+  integrations: "Entegrasyonlar",
+  appearance: "Görünüm",
+  audit: "Denetim kaydı",
   orders: "Siparişler",
 };
 
