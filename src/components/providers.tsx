@@ -7,8 +7,6 @@ import { UiVersionProvider } from "@/components/flags/ui-version-provider";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { toastIcons } from "@/components/ui/toast-icons";
 import type { UiVersion } from "@/lib/flags/ui-version.shared";
-import { UpgradePromptHost } from "@/features/billing/upgrade-prompt";
-
 export function Providers({
   children,
   uiVersion = "v1",
@@ -33,7 +31,6 @@ export function Providers({
       <ConfirmProvider>
       <QueryClientProvider client={queryClient}>
         {children}
-        <UpgradePromptHost />
         <Toaster
           theme="dark"
           position="top-right"

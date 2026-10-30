@@ -8,6 +8,7 @@ import {
   parseSidebarCollapsed,
   SIDEBAR_COOKIE,
 } from "@/lib/shell/sidebar-cookie";
+import { UpgradePromptHost } from "@/features/billing/upgrade-prompt";
 import { WorkspaceProvider } from "@/components/workspace/workspace-provider";
 import { loadWorkspaceSession } from "@/lib/workspace/active";
 import { getAuthUser } from "@/lib/supabase/get-auth-user";
@@ -56,6 +57,7 @@ export default async function DashboardLayout({
           <AppShell>{children}</AppShell>
         )}
       </SupportDiagnosticsRoot>
+      <UpgradePromptHost />
     </WorkspaceProvider>
   );
 }
