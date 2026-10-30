@@ -22,7 +22,7 @@ test.describe("Makineler ve canlı takip", () => {
     });
     await expect(page.getByRole("button", { name: /Atölye köprüsü/i })).toBeEnabled();
     await page.getByRole("button", { name: /Atölye köprüsü/i }).click();
-    await expect(page.getByText(/PrintFlow Bridge|Eşleştirme kodu/i).first()).toBeVisible({
+    await expect(page.getByText(/3D Assistant Bridge|Eşleştirme kodu/i).first()).toBeVisible({
       timeout: 10_000,
     });
   });

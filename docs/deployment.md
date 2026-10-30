@@ -1,6 +1,6 @@
 # Vercel deployment (çoklu servis)
 
-PrintFlow Vercel **Services** ile iki birim çalıştırır; tüm kullanıcı trafiği Next.js üzerindedir.
+**3D Assistant** (`3dassistant.com`) Vercel **Services** ile iki birim çalıştırır; tüm kullanıcı trafiği Next.js üzerindedir.
 
 | Servis | Kök | Rol |
 |--------|-----|-----|
@@ -12,6 +12,6 @@ PrintFlow Vercel **Services** ile iki birim çalıştırır; tüm kullanıcı tr
 - **Genel sağlık:** `GET /api/health` — binding varsa dahili köprü `/health` ping'lenir; köprü yanıt vermezse `503` + `degraded`.
 - **Yerel geliştirme:** `npm run dev` — binding yok; `/api/health` köprüyü `skipped` olarak raporlar.
 - **Çoklu servis yerel:** `vercel dev` (Vercel CLI) — binding davranışına daha yakın test.
-- **Masaüstü PrintFlow Bridge ajanı:** Her zaman herkese açık site URL'sini kullanır (`NEXT_PUBLIC_SITE_URL` / panel origin), `PRINTFLOW_BRIDGE_SERVICE_URL` değil.
+- **Masaüstü 3D Assistant Bridge ajanı:** Her zaman herkese açık site URL'sini kullanır (`NEXT_PUBLIC_SITE_URL=https://3dassistant.com` / panel origin), `PRINTFLOW_BRIDGE_SERVICE_URL` değil.
 
 Cron tanımları yalnızca **app** servisindedir (`vercel.json` → `crons`). Bkz. [production-cron.md](./production-cron.md).

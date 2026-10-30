@@ -3,7 +3,7 @@ import { bridgeDownloads, bridgeInstallersPublished } from "@/lib/bridge/downloa
 
 export const dynamic = "force-dynamic";
 
-/** PrintFlow Bridge tek tık kurulum dosyaları (imzalı artefaktlar CI’dan). */
+/** 3D Assistant Bridge tek tık kurulum dosyaları (imzalı artefaktlar CI’dan). */
 export async function GET() {
   const published = bridgeInstallersPublished();
   return NextResponse.json({

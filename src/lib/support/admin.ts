@@ -22,7 +22,7 @@ export function supportEmailFrom(): string {
   return (
     process.env.SUPPORT_EMAIL_FROM?.trim() ||
     process.env.EMAIL_FROM?.trim() ||
-    "PrintFlow <onboarding@resend.dev>"
+    "3D Assistant <onboarding@resend.dev>"
   );
 }
 

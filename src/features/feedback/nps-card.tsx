@@ -93,7 +93,7 @@ export function NpsCard() {
     <Card className="border-primary/25 bg-gradient-to-br from-primary/5 to-transparent">
       <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 pb-2">
         <div className="space-y-1">
-          <CardTitle className="text-base">PrintFlow&apos;u başkalarına önerir misiniz?</CardTitle>
+          <CardTitle className="text-base">3D Assistant&apos;ı başkalarına önerir misiniz?</CardTitle>
           <CardDescription>
             0 = hiç olası değil · 10 = kesinlikle öneririm
           </CardDescription>

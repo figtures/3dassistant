@@ -115,7 +115,7 @@ export default function HomePage() {
       </section>
 
       <footer className="relative z-10 border-t border-zinc-800/60 py-6 text-center text-xs text-zinc-600">
-        © 2026 3dassistant — 3D atölye ERP
+        © 2026 3D Assistant — 3D atölye ERP
       </footer>
     </div>
   );

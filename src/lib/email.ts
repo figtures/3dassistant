@@ -3,7 +3,7 @@ import { Resend } from "resend";
 const FROM =
   process.env.SUPPORT_EMAIL_FROM?.trim() ||
   process.env.EMAIL_FROM?.trim() ||
-  "PrintFlow <onboarding@resend.dev>";
+  "3D Assistant <onboarding@resend.dev>";
 
 export async function sendEmail(opts: {
   to: string;

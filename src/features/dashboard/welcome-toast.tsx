@@ -14,7 +14,7 @@ export function WelcomeToast() {
     if (searchParams.get("welcome") !== "1") return;
     shown.current = true;
     toast.success("Kurulum tamamlandı!", {
-      description: "PrintFlow'a hoş geldiniz. Dashboard'dan atölyenizi yönetmeye başlayın.",
+      description: "3D Assistant'a hoş geldiniz. Dashboard'dan atölyenizi yönetmeye başlayın.",
     });
     const url = new URL(window.location.href);
     url.searchParams.delete("welcome");

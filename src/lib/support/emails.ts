@@ -64,7 +64,7 @@ export async function sendSupportReportEmails(opts: {
 
   const confirmHtml = `
     <p>Merhaba,</p>
-    <p>3dassistant destek talebiniz alındı. Bilet numaranız: <strong>${opts.ticketId}</strong></p>
+    <p>3D Assistant destek talebiniz alındı. Bilet numaranız: <strong>${opts.ticketId}</strong></p>
     <p>Konu: ${escapeHtml(opts.subject)}</p>
     <p>Destek taleplerinizi panelde <strong>/support</strong> sayfasından takip edebilirsiniz.</p>
     <p>Ekibimiz en kısa sürede inceleyecek. Yanıt bu e-posta adresine gönderilebilir.</p>
@@ -72,7 +72,7 @@ export async function sendSupportReportEmails(opts: {
   `;
   const confirm = await sendEmail({
     to: opts.customerEmail,
-    subject: `3dassistant destek talebi ${opts.ticketId}`,
+    subject: `3D Assistant destek talebi ${opts.ticketId}`,
     html: confirmHtml,
     text: `Talebiniz alındı. Bilet: ${opts.ticketId}\nKonu: ${opts.subject}\nTakip: /support`,
   });
@@ -91,7 +91,7 @@ export async function sendStaffReplyEmail(opts: {
   body: string;
 }): Promise<{ ok: boolean; skipped?: boolean }> {
   const html = `
-    <p>3dassistant destek yanıtı — <strong>${escapeHtml(opts.ticketId)}</strong></p>
+    <p>3D Assistant destek yanıtı — <strong>${escapeHtml(opts.ticketId)}</strong></p>
     <p><strong>Konu:</strong> ${escapeHtml(opts.subject)}</p>
     <pre style="white-space:pre-wrap;font-family:system-ui">${escapeHtml(opts.body)}</pre>
     <p style="color:#666;font-size:12px">Yanıt vermek için panelde /support bölümünü kullanabilirsiniz.</p>

@@ -36,7 +36,7 @@ export const STATUS_SERVICE_META: Record<
 > = {
   app: {
     label: "Uygulama",
-    description: "PrintFlow web uygulaması ve API uç noktaları.",
+    description: "3D Assistant web uygulaması ve API uç noktaları.",
   },
   cloud_sync: {
     label: "Bulut yazıcı senkronu",
