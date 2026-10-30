@@ -13,10 +13,11 @@ import {
   EmptyState,
   Skeleton,
 } from "@/components/ds";
-import { CloudPrinterConnectModal } from "@/components/machines/cloud-printer-connect-modal";
 import { WorkshopBridgeModal } from "@/components/machines/workshop-bridge-modal";
-import { CloudPrinterOAuthHandler } from "@/components/machines/cloud-printer-oauth-handler";
+import { PrinterConnectWizard } from "@/features/printer-connect/printer-connect-wizard";
+import { PrinterConnectOAuthHandler } from "@/features/printer-connect/printer-connect-oauth-handler";
 import type { Machine, MachineStatus, PrinterVendor } from "@/types/database";
+import type { ConnectVendor } from "@/features/printer-connect/methods";
 import type { UiMachineState } from "@/lib/machine-state";
 import { toast } from "sonner";
 import { Cpu, Cloud, Lock, MoreHorizontal, Plus, Radio } from "lucide-react";
@@ -70,11 +71,12 @@ function MachinesV2Content() {
         ? "list"
         : "grid";
 
-  const [cloudConnectOpen, setCloudConnectOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardCloudAccount, setWizardCloudAccount] = useState<string | null>(null);
+  const [wizardCloudMock, setWizardCloudMock] = useState(false);
+  const [wizardConnectVendor, setWizardConnectVendor] = useState<ConnectVendor | null>(null);
   const [bridgeOpen, setBridgeOpen] = useState(false);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
-  const [oauthAccountId, setOauthAccountId] = useState<string | null>(null);
-  const [oauthMock, setOauthMock] = useState(false);
   const [reconnectAccountId, setReconnectAccountId] = useState<string | null>(null);
   const [reconnectVendor, setReconnectVendor] = useState<PrinterVendor | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -127,16 +129,25 @@ function MachinesV2Content() {
     patchUrl({ new: null });
   }, [searchParams, patchUrl]);
 
-  const handleOAuthConnected = useCallback((accountId: string, mock: boolean) => {
-    setOauthAccountId(accountId);
-    setOauthMock(mock);
-    setCloudConnectOpen(true);
-  }, []);
+  const handleOAuthConnected = useCallback(
+    (accountId: string, mock: boolean, vendor: string | null) => {
+      setWizardCloudAccount(accountId);
+      setWizardCloudMock(mock);
+      if (vendor === "bambu" || vendor === "creality") {
+        setWizardConnectVendor(vendor);
+      }
+      setWizardOpen(true);
+    },
+    []
+  );
 
-  function openCloudConnect() {
+  function openConnectWizard() {
     setReconnectAccountId(null);
     setReconnectVendor(null);
-    setCloudConnectOpen(true);
+    setWizardCloudAccount(null);
+    setWizardCloudMock(false);
+    setWizardConnectVendor(null);
+    setWizardOpen(true);
   }
 
   function openCreate() {
@@ -298,8 +309,9 @@ function MachinesV2Content() {
     if (!account) return;
     setReconnectAccountId(account.id);
     setReconnectVendor(account.vendor as PrinterVendor);
-    setOauthAccountId(null);
-    setCloudConnectOpen(true);
+    setWizardCloudAccount(null);
+    setWizardCloudMock(false);
+    setWizardOpen(true);
   }
 
   const cardActions = {
@@ -308,7 +320,7 @@ function MachinesV2Content() {
     onSync: handleSync,
     onMaintenance: handleMaintenance,
     onReconnect: handleReconnect,
-    onConnect: openCloudConnect,
+    onConnect: openConnectWizard,
     syncingId,
   };
 
@@ -357,7 +369,7 @@ function MachinesV2Content() {
           {entLoading ? (
             <Skeleton className="h-10 w-36 rounded-lg" />
           ) : (
-            <Button type="button" onClick={openCloudConnect}>
+            <Button type="button" onClick={openConnectWizard}>
               {cloudAllowed ? (
                 <Cloud className="size-4" aria-hidden />
               ) : (
@@ -366,16 +378,6 @@ function MachinesV2Content() {
               Yazıcı bağla
             </Button>
           )}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setBridgeOpen(true)}
-            disabled={!cloudAllowed}
-            title={!cloudAllowed ? "Atölye veya Filament Farm gerekir" : undefined}
-          >
-            <Radio className="size-4" aria-hidden />
-            Atölye köprüsü
-          </Button>
           <Button
             type="button"
             variant="secondary"
@@ -390,7 +392,7 @@ function MachinesV2Content() {
 
       {ent ? <PlanUsageMeter ent={ent} /> : null}
 
-      <UntrackedBanner count={untrackedCount} onConnect={openCloudConnect} />
+      <UntrackedBanner count={untrackedCount} onConnect={openConnectWizard} />
 
       {machines.length === 0 ? (
         <EmptyState
@@ -399,7 +401,7 @@ function MachinesV2Content() {
           description="İlk yazıcınızı bağlayın veya elle ekleyerek planlamaya başlayın."
           action={
             <div className="flex flex-wrap justify-center gap-2">
-              <Button type="button" onClick={openCloudConnect}>
+              <Button type="button" onClick={openConnectWizard}>
                 Yazıcı bağla
               </Button>
               <Button
@@ -477,6 +479,18 @@ function MachinesV2Content() {
             <Button
               type="button"
               variant="secondary"
+              onClick={() => {
+                setHeaderMenuOpen(false);
+                setBridgeOpen(true);
+              }}
+              disabled={!cloudAllowed}
+            >
+              <Radio className="size-4" aria-hidden />
+              Atölye köprüsü
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
               loading={syncAllRunning}
               onClick={() => void handleSyncAll()}
             >
@@ -487,28 +501,40 @@ function MachinesV2Content() {
       </Dialog>
 
       <Suspense fallback={null}>
-        <CloudPrinterOAuthHandler onConnected={handleOAuthConnected} />
+        <PrinterConnectOAuthHandler onConnected={handleOAuthConnected} />
       </Suspense>
 
       <WorkshopBridgeModal open={bridgeOpen} onOpenChange={setBridgeOpen} />
 
-      <CloudPrinterConnectModal
-        open={cloudConnectOpen}
+      <Dialog
+        open={wizardOpen}
         onOpenChange={(open) => {
-          setCloudConnectOpen(open);
+          setWizardOpen(open);
           if (!open) {
-            setOauthAccountId(null);
-            setOauthMock(false);
+            setWizardCloudAccount(null);
+            setWizardCloudMock(false);
+            setWizardConnectVendor(null);
             setReconnectAccountId(null);
             setReconnectVendor(null);
           }
         }}
-        initialAccountId={oauthAccountId}
-        initialMock={oauthMock}
-        reconnectAccountId={reconnectAccountId}
-        reconnectVendor={reconnectVendor}
-        onSaved={() => queryClient.invalidateQueries({ queryKey: ["machines"] })}
-      />
+      >
+        <DialogContent size="xl" className="max-h-[min(90vh,720px)] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Yazıcı bağla</DialogTitle>
+          </DialogHeader>
+          <PrinterConnectWizard
+            key={`${wizardCloudAccount ?? "new"}-${reconnectAccountId ?? ""}-${wizardConnectVendor ?? ""}`}
+            mode="dialog"
+            onClose={() => setWizardOpen(false)}
+            initialAccountId={wizardCloudAccount ?? reconnectAccountId}
+            initialMock={wizardCloudMock}
+            reconnectAccountId={reconnectAccountId}
+            reconnectVendor={reconnectVendor}
+            initialConnectVendor={wizardConnectVendor}
+          />
+        </DialogContent>
+      </Dialog>
 
       <MachineFormDialog
         open={formOpen}

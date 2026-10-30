@@ -62,6 +62,9 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.redirect(machinesUrl);
   }
 
+  const successRedirect =
+    pending.returnTo === "connect" ? new URL("/machines/connect", siteUrl) : machinesUrl;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -180,12 +183,16 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.redirect(machinesUrl);
   }
 
-  machinesUrl.searchParams.set("connected", "1");
-  machinesUrl.searchParams.set("account", account.id);
-  if (mockMode) {
-    machinesUrl.searchParams.set("mock", "1");
+  if (pending.returnTo === "connect") {
+    successRedirect.searchParams.set("connect", "resume");
   }
-  const response = NextResponse.redirect(machinesUrl);
+  successRedirect.searchParams.set("connected", "1");
+  successRedirect.searchParams.set("account", account.id);
+  successRedirect.searchParams.set("vendor", vendor);
+  if (mockMode) {
+    successRedirect.searchParams.set("mock", "1");
+  }
+  const response = NextResponse.redirect(successRedirect);
   response.cookies.set(OAUTH_STATE_COOKIE, "", { ...oauthStateCookieOptions(), maxAge: 0 });
   return response;
 }

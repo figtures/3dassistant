@@ -46,9 +46,12 @@ export async function GET(request: Request, context: RouteContext) {
 
   const mockMode = isCloudMockEnabled();
   const redirectUri = oauthRedirectUri(vendorParam, siteUrl);
-  const reconnectParam = new URL(request.url).searchParams.get("reconnect");
+  const startUrl = new URL(request.url);
+  const reconnectParam = startUrl.searchParams.get("reconnect");
   const reconnectAccountId =
     reconnectParam && /^[0-9a-f-]{36}$/i.test(reconnectParam) ? reconnectParam : undefined;
+  const returnTo =
+    startUrl.searchParams.get("return") === "connect" ? ("connect" as const) : undefined;
 
   if (mockMode) {
     const state = generateOAuthState();
@@ -63,6 +66,7 @@ export async function GET(request: Request, context: RouteContext) {
         state,
         codeVerifier,
         reconnectAccountId,
+        returnTo,
       }),
       oauthStateCookieOptions()
     );
@@ -97,6 +101,7 @@ export async function GET(request: Request, context: RouteContext) {
       state,
       codeVerifier,
       reconnectAccountId,
+      returnTo,
     }),
     oauthStateCookieOptions()
   );

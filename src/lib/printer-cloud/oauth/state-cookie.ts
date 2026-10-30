@@ -9,6 +9,8 @@ export type OAuthPendingState = {
   displayName?: string;
   /** Doluysa callback yeni hesap açmaz, bu hesabın jetonlarını yeniler (RLS ile sahiplik). */
   reconnectAccountId?: string;
+  /** OAuth sonrası yönlendirme: yazıcı bağlama sihirbazı. */
+  returnTo?: "connect";
 };
 
 export function serializeOAuthState(payload: OAuthPendingState): string {

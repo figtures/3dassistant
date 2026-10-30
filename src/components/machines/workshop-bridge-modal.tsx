@@ -41,13 +41,10 @@ async function installerHeadMissing(url: string): Promise<boolean> {
   }
 }
 
-function downloadFallbackToast(devSetup: string | null) {
-  toast.error(
-    devSetup
-      ? `Installer indirilemedi. Atölyede: npm run bridge:pair — ${devSetup}`
-      : "Installer indirilemedi. Atölyede npm run bridge:pair ve npm run bridge:run deneyin.",
-    { duration: 8000 },
-  );
+function downloadFallbackToast() {
+  toast.error("Installer indirilemedi. Kurulum rehberine bakın veya destek talebi oluşturun.", {
+    duration: 8000,
+  });
 }
 
 export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
@@ -59,7 +56,6 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [downloads, setDownloads] = useState<BridgeDownload[]>([]);
   const [installersPublished, setInstallersPublished] = useState(false);
-  const [devSetup, setDevSetup] = useState<string | null>(null);
   const [detection, setDetection] = useState<BridgePlatformDetection | null>(null);
   const [showOtherPlatforms, setShowOtherPlatforms] = useState(false);
   const [showVendorNotes, setShowVendorNotes] = useState(false);
@@ -78,7 +74,6 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
       .then((body) => {
         setDownloads(body.downloads ?? []);
         setInstallersPublished(Boolean(body.installersPublished));
-        setDevSetup(body.devSetup ?? null);
       })
       .catch(() => setDownloads([]));
   }, [open, cloudAllowed]);
@@ -97,7 +92,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
     if (!primaryDownload) {
       if (!installersPublished || downloads.length === 0) {
         toast.message("Installer henüz yayında değil", {
-          description: "Atölyede npm run bridge:pair sonra npm run bridge:run.",
+          description: "Erken erişim için destek talebi oluşturabilirsiniz.",
         });
       } else {
         toast.error("Sisteminiz için otomatik eşleşme yok; Diğer platformlar bölümünü açın.");
@@ -109,7 +104,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
     setDownloadBusy(true);
     try {
       if (await installerHeadMissing(primaryDownload.url)) {
-        downloadFallbackToast(devSetup);
+        downloadFallbackToast();
         return;
       }
       startBridgeDownload(primaryDownload);
@@ -209,10 +204,10 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
 
                 {!installersPublished && downloads.length === 0 ? (
                   <p className="text-xs text-amber-200/90">
-                    Installer henüz yayında değil. Atölyede:{" "}
-                    <code className="text-zinc-300">npm run bridge:pair</code> sonra{" "}
-                    <code className="text-zinc-300">npm run bridge:run</code>
-                    {devSetup ? ` — ${devSetup}` : ""}
+                    Installer henüz yayında değil.{" "}
+                    <Link href="/support?topic=bridge" className="text-sky-400 hover:text-sky-300">
+                      Destek talebi oluşturun
+                    </Link>
                   </p>
                 ) : downloads.length === 0 ? (
                   <p className="text-xs text-zinc-500">İndirme listesi yükleniyor…</p>
@@ -272,10 +267,14 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
                 )}
 
                 <p className="mt-2 text-[11px] text-zinc-600">
-                  İndirme başarısız olursa:{" "}
-                  <code className="text-zinc-500">npm run bridge:pair</code> /{" "}
-                  <code className="text-zinc-500">bridge:run</code> — ayrıntılar repo{" "}
-                  <code className="text-zinc-500">docs/workshop-bridge.md</code>
+                  Sorun mu yaşıyorsunuz?{" "}
+                  <Link href="/support?topic=bridge" className="text-sky-400 hover:text-sky-300">
+                    Kurulum rehberi
+                  </Link>
+                  {" · "}
+                  <Link href="/support?topic=bridge&report=1" className="text-sky-400 hover:text-sky-300">
+                    Destek paketini gönder
+                  </Link>
                 </p>
               </div>
 
@@ -372,10 +371,12 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
               )}
 
               <p className="text-xs text-zinc-600">
-                Erişim kodu, şifre ve API anahtarları yalnızca atölye bilgisayarında kalır; 3dassistant
-                sunucusuna gönderilmez. Sorun yaşarsanız atölyede{" "}
-                <code className="text-zinc-500">npm run bridge:support -- --upload</code> çalıştırın, ardından
-                panelden Sorun bildir.
+                Erişim kodu, şifre ve API anahtarları yalnızca atölye bilgisayarında kalır; sunucuya
+                gönderilmez. Sorun yaşarsanız köprüden destek paketi gönderin veya panelden{" "}
+                <Link href="/support?topic=bridge&report=1" className="text-sky-400 hover:text-sky-300">
+                  Sorun bildir
+                </Link>
+                .
               </p>
             </>
           )}

@@ -49,7 +49,7 @@ export default function MachinesLegacyPage() {
   const [reconnectVendor, setReconnectVendor] = useState<PrinterVendor | null>(null);
   const { openReport } = useSupportReport();
 
-  const handleOAuthConnected = useCallback((accountId: string, mock: boolean) => {
+  const handleOAuthConnected = useCallback((accountId: string, mock: boolean, _vendor: string | null) => {
     setOauthAccountId(accountId);
     setOauthMock(mock);
     setCloudConnectOpen(true);

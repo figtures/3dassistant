@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 type Props = {
-  onConnected: (accountId: string, mock: boolean) => void;
+  onConnected: (accountId: string, mock: boolean, vendor: string | null) => void;
 };
 
 export function CloudPrinterOAuthHandler({ onConnected }: Props) {
@@ -24,7 +24,7 @@ export function CloudPrinterOAuthHandler({ onConnected }: Props) {
     const accountId = searchParams.get("account");
     if (connected === "1" && accountId) {
       const mock = searchParams.get("mock") === "1";
-      onConnected(accountId, mock);
+      onConnected(accountId, mock, searchParams.get("vendor"));
       router.replace("/machines");
     }
   }, [searchParams, router, onConnected]);
