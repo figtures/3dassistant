@@ -44,4 +44,4 @@ export function isWeekendDate(dateStr: string): boolean {
   return day === 0 || day === 6;
 }
 
-export { formatCurrency } from "@/lib/utils";
+export { formatCurrency, formatGrams } from "@/lib/utils";
