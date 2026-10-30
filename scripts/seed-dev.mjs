@@ -2,6 +2,8 @@
  * Dev mock data seed — dev.busraaktas@gmail.com
  * Usage: node scripts/seed-dev.mjs
  * Requires .env.local with Supabase URL + anon key
+ *
+ * Onboarding örnek veri alt kümesi: src/lib/sample-data.ts (P2-05)
  */
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";

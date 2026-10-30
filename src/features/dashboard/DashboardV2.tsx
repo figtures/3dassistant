@@ -9,6 +9,7 @@ import { RecentActivity } from "@/features/dashboard/recent-activity";
 import { useDashboardKpis } from "@/features/dashboard/use-dashboard-kpis";
 import { formatDate } from "@/lib/format";
 import { SetupChecklistCard } from "@/features/onboarding/setup-checklist-card";
+import { SampleDataBanner } from "@/features/onboarding/sample-data-banner";
 
 function greetingForHour(hour: number): string {
   if (hour < 12) return "Günaydın";
@@ -31,6 +32,7 @@ export function DashboardV2({ displayName }: DashboardV2Props) {
       <Suspense fallback={null}>
         <WelcomeToast />
       </Suspense>
+      <SampleDataBanner />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <header className="min-w-0 space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">

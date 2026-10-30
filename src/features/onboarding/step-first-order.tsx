@@ -33,6 +33,7 @@ export function StepFirstOrder({ onFinish, onSkip }: StepFirstOrderProps) {
     () => new Date().toISOString().slice(0, 10)
   );
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   const canSubmit = useMemo(
     () => Boolean(title.trim() && defaultMachineId),
@@ -92,6 +93,33 @@ export function StepFirstOrder({ onFinish, onSkip }: StepFirstOrderProps) {
     }
     toast.success("İlk siparişiniz oluşturuldu");
     onFinish();
+  }
+
+  async function handleSampleData() {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/onboarding/sample-data", { method: "POST" });
+      const body = (await res.json()) as { error?: string; code?: string };
+      if (!res.ok) {
+        toast.error(body.error ?? "Örnek veriler eklenemedi");
+        return;
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["machines"] }),
+        queryClient.invalidateQueries({ queryKey: ["materials"] }),
+        queryClient.invalidateQueries({ queryKey: ["customers"] }),
+        queryClient.invalidateQueries({ queryKey: ["jobs"] }),
+        queryClient.invalidateQueries({ queryKey: ["sample-data"] }),
+        queryClient.invalidateQueries({ queryKey: ["entitlements"] }),
+      ]);
+      toast.success("Örnek veriler hazır — keşfetmeye başlayın");
+      onFinish();
+      router.push("/dashboard?ui=v2");
+    } catch {
+      toast.error("Örnek veriler eklenemedi");
+    } finally {
+      setSeeding(false);
+    }
   }
 
   return (
@@ -164,9 +192,10 @@ export function StepFirstOrder({ onFinish, onSkip }: StepFirstOrderProps) {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => router.push("/dashboard")}
+            loading={seeding}
+            onClick={() => void handleSampleData()}
           >
-            Örnek veriler (yakında)
+            Örnek verilerle keşfet
           </Button>
           <Button
             type="button"
