@@ -15,6 +15,9 @@ describe("getBreadcrumbs", () => {
     assert.deepEqual(getBreadcrumbs("/planning"), [
       { label: "Planlama", href: undefined },
     ]);
+    assert.deepEqual(getBreadcrumbs("/orders"), [
+      { label: "Siparişler", href: undefined },
+    ]);
   });
 
   it("builds nested paths", () => {
@@ -47,5 +50,11 @@ describe("groupNavItems", () => {
     const groups = groupNavItems(NAV_ITEMS, { isAdmin: true });
     const all = groups.flatMap((g) => g.items);
     assert.ok(all.some((i) => i.id === "support-admin"));
+  });
+
+  it("includes orders in production section", () => {
+    const groups = groupNavItems(NAV_ITEMS, { isAdmin: false });
+    const production = groups.find((g) => g.section === "production");
+    assert.ok(production?.items.some((i) => i.id === "orders"));
   });
 });

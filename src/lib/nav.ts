@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Calendar,
   CalendarDays,
+  ClipboardList,
   CreditCard,
   LayoutDashboard,
   LayoutGrid,
@@ -51,12 +52,19 @@ export const NAV_ITEMS: NavItem[] = [
     section: "production",
   },
   {
+    id: "orders",
+    label: "Siparişler",
+    href: "/orders",
+    icon: ClipboardList,
+    section: "production",
+    badgeKey: "overdueOrders",
+  },
+  {
     id: "calendar",
     label: "Teslim Takvimi",
     href: "/calendar",
     icon: Calendar,
     section: "production",
-    badgeKey: "overdueOrders",
   },
   {
     id: "machines",
