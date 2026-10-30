@@ -10,16 +10,16 @@ export async function register() {
 export const onRequestError: Instrumentation.onRequestError = async (err, request) => {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   try {
+    const { getServerSiteUrl } = await import("@/lib/site-url-server");
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
     const digest =
       typeof err === "object" && err !== null && "digest" in err
         ? String((err as { digest?: string }).digest)
         : undefined;
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-      `http://127.0.0.1:${process.env.PORT ?? "3000"}`;
-    await fetch(`${origin}/api/telemetry/server-errors`, {
+    const origin = getServerSiteUrl();
+    const telemetryUrl = new URL("/api/telemetry/server-errors", origin);
+    await fetch(telemetryUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

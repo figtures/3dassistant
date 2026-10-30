@@ -5,6 +5,7 @@ import { generatePairingCode, hashPairingCode } from "@/lib/bridge/crypto";
 import { cloudRequiredMessage, getEntitlements, PLAN_ERROR } from "@/lib/billing/entitlements";
 import { requireWorkspaceSession } from "@/lib/workspace/active";
 import { requireRole } from "@/lib/workspace/require-role";
+import { getServerSiteUrl } from "@/lib/site-url-server";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export async function POST() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  const siteUrl = getServerSiteUrl();
 
   return NextResponse.json({
     code,

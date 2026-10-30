@@ -1,4 +1,28 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": {
+      "root": ".",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "printflow-bridge",
+          "format": "url",
+          "env": "PRINTFLOW_BRIDGE_SERVICE_URL"
+        }
+      ]
+    },
+    "printflow-bridge": {
+      "root": "apps/printflow-bridge/cloud"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": { "service": "web" }
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/overdue-reminders",
