@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   hasSupabaseAuthCookie,
   isAuthRateLimitError,
-  isRscOrPrefetchRequest,
+  shouldSkipSupabaseAuthRefresh,
 } from "@/lib/supabase/auth-cookies";
+import type { User } from "@supabase/supabase-js";
 
 function isPublicPath(pathname: string): boolean {
   return (
@@ -34,8 +35,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  // RSC/prefetch: Supabase Auth API'sine tekrar tekrar gitme (429 tetikler).
-  if (isRscOrPrefetchRequest(request)) {
+  // RSC/prefetch (belge navigasyonu hariç): gereksiz getUser çağrılarını kes.
+  if (shouldSkipSupabaseAuthRefresh(request)) {
     return NextResponse.next({ request });
   }
 
@@ -76,11 +77,31 @@ export async function updateSession(request: NextRequest) {
   );
 
   const {
-    data: { user },
+    data: { user: userFromApi },
     error,
   } = await supabase.auth.getUser();
 
+  let user: User | null = userFromApi;
+
+  async function userFromSessionCookie(): Promise<User | null> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.user ?? null;
+  }
+
+  if (isAuthRateLimitError(error) && !user) {
+    user = await userFromSessionCookie();
+  } else if (!user) {
+    user = await userFromSessionCookie();
+  }
+
   if (isAuthRateLimitError(error)) {
+    if (user && isSessionEntryPage(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
     return supabaseResponse;
   }
 

@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -14,6 +14,7 @@ import { AuthShell } from "@/features/auth/auth-shell";
 import { PasswordInput } from "@/features/auth/password-input";
 
 function LoginFormInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered") === "1";
   const authError = searchParams.get("error") === "auth_callback_failed";
@@ -39,7 +40,8 @@ function LoginFormInner() {
     }
 
     toast.success("Hoş geldiniz!");
-    window.location.assign("/dashboard");
+    router.refresh();
+    router.replace("/dashboard");
   }
 
   return (

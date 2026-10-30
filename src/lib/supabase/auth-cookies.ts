@@ -15,6 +15,23 @@ export function isRscOrPrefetchRequest(request: NextRequest): boolean {
   );
 }
 
+/** Tam sayfa yüklemesi (giriş sonrası /dashboard gibi) — proxy oturumu tazelemeli. */
+export function isDocumentNavigation(request: NextRequest): boolean {
+  const dest = request.headers.get("sec-fetch-dest");
+  if (dest === "document") return true;
+  const accept = request.headers.get("accept") ?? "";
+  return accept.includes("text/html");
+}
+
+/**
+ * Supabase getUser atlanabilir mi?
+ * RSC/prefetch atlanır; belge navigasyonunda (Accept: text/html) tazeleme yapılır.
+ */
+export function shouldSkipSupabaseAuthRefresh(request: NextRequest): boolean {
+  if (!isRscOrPrefetchRequest(request)) return false;
+  return !isDocumentNavigation(request);
+}
+
 export function isAuthRateLimitError(error: { status?: number; code?: string } | null): boolean {
   return error?.status === 429 || error?.code === "over_request_rate_limit";
 }
