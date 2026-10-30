@@ -9,8 +9,10 @@ import {
   NAV_ITEMS,
   type NavBadgeKey,
   type NavItem,
+  type GroupNavOptions,
 } from "@/lib/nav";
 import type { NavBadges } from "@/components/v2/shell/use-nav-badges";
+import { useWorkspace } from "@/components/workspace/workspace-provider";
 
 function NavBadge({
   badgeKey,
@@ -107,11 +109,14 @@ export function SidebarNavPanel({
 }: {
   collapsed: boolean;
   badges: NavBadges;
+  /** Destek yönetimi (`SUPPORT_ADMIN_EMAILS`) */
   isAdmin?: boolean;
   onNavigate?: () => void;
   className?: string;
 }) {
-  const groups = groupNavItems(NAV_ITEMS, { isAdmin });
+  const { role } = useWorkspace();
+  const navCtx: GroupNavOptions = { role, isSupportAdmin: isAdmin };
+  const groups = groupNavItems(NAV_ITEMS, navCtx);
 
   return (
     <nav

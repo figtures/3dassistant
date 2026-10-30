@@ -4,6 +4,7 @@ import { testConnection } from "@/lib/printer-monitoring/sync";
 import type { AdapterType } from "@/lib/printer-monitoring/types";
 import { isLanMonitoringEnabled, LAN_DISABLED_MESSAGE } from "@/lib/printer-monitoring/lan";
 import { requireWorkspaceSession } from "@/lib/workspace/active";
+import { requireRole } from "@/lib/workspace/require-role";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const auth = requireRole(session, "machines.manage");
+  if (!auth.ok) return auth.response;
   const { workspaceId } = session;
 
   let body: {
@@ -146,6 +149,8 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const auth = requireRole(session, "machines.manage");
+  if (!auth.ok) return auth.response;
   const { workspaceId } = session;
 
   const { error } = await supabase

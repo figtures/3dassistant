@@ -9,7 +9,8 @@ import {
   inviteExpiresAt,
 } from "@/lib/workspace/invites";
 import { canInviteWithRole } from "@/lib/workspace/member-rules";
-import { isWorkspaceAdminRole } from "@/lib/workspace/roles";
+import { can } from "@/lib/workspace/permissions";
+import { requireRole } from "@/lib/workspace/require-role";
 import type { WorkspaceRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ export async function GET() {
 
   return NextResponse.json({
     invites: invites ?? [],
-    canManage: isWorkspaceAdminRole(session.role),
+    canManage: can(session.role, "team.manage"),
   });
 }
 
@@ -50,9 +51,8 @@ export async function POST(request: Request) {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
-  if (!isWorkspaceAdminRole(session.role)) {
-    return NextResponse.json({ error: "Davet göndermek için yetkiniz yok" }, { status: 403 });
-  }
+  const auth = requireRole(session, "team.manage");
+  if (!auth.ok) return auth.response;
 
   let body: { email?: string; role?: string };
   try {
@@ -133,9 +133,8 @@ export async function DELETE(request: Request) {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
-  if (!isWorkspaceAdminRole(session.role)) {
-    return NextResponse.json({ error: "Bu işlem için yetkiniz yok" }, { status: 403 });
-  }
+  const auth = requireRole(session, "team.manage");
+  if (!auth.ok) return auth.response;
 
   let body: { inviteId?: string };
   try {

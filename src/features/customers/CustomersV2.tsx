@@ -30,6 +30,7 @@ import {
   type CustomerFormValues,
 } from "@/features/customers/customer-sheet";
 import { useTenantId } from "@/components/workspace/workspace-provider";
+import { usePermission } from "@/components/workspace/can";
 import { CustomersTable } from "@/features/customers/customers-table";
 import {
   buildCustomerStatsMap,
@@ -72,6 +73,9 @@ function CustomersV2Content() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const confirmAction = useConfirm();
+  const canEditCustomers = usePermission("customers.edit");
+  const showFinance = usePermission("finance.view");
+  const canExport = usePermission("export.data");
 
   const { data: customers = [], isLoading, isError, refetch } = useCustomers();
   const { data: jobs = [] } = useJobs();
@@ -348,19 +352,23 @@ function CustomersV2Content() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            onClick={() => setExcelMenuOpen(true)}
-            aria-label="Excel işlemleri"
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
-          <Button type="button" onClick={openCreate}>
-            <Plus className="size-4" aria-hidden />
-            Müşteri ekle
-          </Button>
+          {canExport ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              onClick={() => setExcelMenuOpen(true)}
+              aria-label="Excel işlemleri"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          ) : null}
+          {canEditCustomers ? (
+            <Button type="button" onClick={openCreate}>
+              <Plus className="size-4" aria-hidden />
+              Müşteri ekle
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -378,16 +386,20 @@ function CustomersV2Content() {
           title="Henüz müşteri yok"
           description="İlk müşterinizi ekleyin veya Excel şablonu ile toplu içe aktarın."
           action={
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button type="button" variant="secondary" onClick={() => void handleDownloadTemplate()}>
-                <Download className="size-4" aria-hidden />
-                Şablon indir
-              </Button>
-              <Button type="button" onClick={openCreate}>
-                <Plus className="size-4" aria-hidden />
-                Müşteri ekle
-              </Button>
-            </div>
+            canEditCustomers ? (
+              <div className="flex flex-wrap justify-center gap-2">
+                {canExport ? (
+                  <Button type="button" variant="secondary" onClick={() => void handleDownloadTemplate()}>
+                    <Download className="size-4" aria-hidden />
+                    Şablon indir
+                  </Button>
+                ) : null}
+                <Button type="button" onClick={openCreate}>
+                  <Plus className="size-4" aria-hidden />
+                  Müşteri ekle
+                </Button>
+              </div>
+            ) : undefined
           }
         />
       ) : filtered.length === 0 ? (
@@ -413,6 +425,8 @@ function CustomersV2Content() {
           statsMap={statsMap}
           onEdit={openEdit}
           onDelete={handleDelete}
+          showFinance={showFinance}
+          canEdit={canEditCustomers}
         />
       )}
 

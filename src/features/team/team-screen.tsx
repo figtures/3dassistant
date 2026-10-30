@@ -16,7 +16,7 @@ import {
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import { isWorkspaceAdminRole } from "@/lib/workspace/roles";
+import { can } from "@/lib/workspace/permissions";
 import { WORKSPACE_ROLE_LABELS } from "@/lib/workspace/role-labels";
 import type { WorkspaceRole } from "@/types/database";
 import { InviteSheet } from "@/features/team/invite-sheet";
@@ -31,7 +31,7 @@ import {
 
 export function TeamScreen() {
   const { role, name: workspaceName } = useWorkspace();
-  const canManage = isWorkspaceAdminRole(role);
+  const canManage = can(role, "team.manage");
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const router = useRouter();

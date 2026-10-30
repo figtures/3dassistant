@@ -5,14 +5,15 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { SETTINGS_NAV } from "@/lib/nav";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import { isWorkspaceAdminRole } from "@/lib/workspace/roles";
+import { isNavItemVisible } from "@/lib/workspace/permissions";
 
 export function SettingsSubnav() {
   const pathname = usePathname();
   const { role } = useWorkspace();
-  const isAdmin = isWorkspaceAdminRole(role);
 
-  const items = SETTINGS_NAV.filter((item) => !item.adminOnly || isAdmin);
+  const items = SETTINGS_NAV.filter((item) =>
+    isNavItemVisible(item, { role, isSupportAdmin: false })
+  );
 
   return (
     <nav

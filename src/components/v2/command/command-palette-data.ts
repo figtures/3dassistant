@@ -6,7 +6,7 @@ import {
   Monitor,
   PlusCircle,
 } from "lucide-react";
-import { NAV_ITEMS, groupNavItems } from "@/lib/nav";
+import { NAV_ITEMS, groupNavItems, type GroupNavOptions } from "@/lib/nav";
 
 export const NAV_SEARCH_KEYWORDS: Record<string, string[]> = {
   dashboard: ["genel", "özet", "ana"],
@@ -77,8 +77,8 @@ export const QUICK_ACTIONS: QuickAction[] = [
   },
 ];
 
-export function getVisibleNavItems(isAdmin?: boolean) {
-  return groupNavItems(NAV_ITEMS, { isAdmin }).flatMap((g) => g.items);
+export function getVisibleNavItems(opts?: GroupNavOptions) {
+  return groupNavItems(NAV_ITEMS, opts).flatMap((g) => g.items);
 }
 
 export function navItemKeywords(itemId: string, label: string): string[] {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { tryCreateAdminClient } from "@/lib/supabase/admin";
 import { requireWorkspaceSession } from "@/lib/workspace/active";
-import { isWorkspaceAdminRole } from "@/lib/workspace/roles";
+import { can } from "@/lib/workspace/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +62,6 @@ export async function GET() {
     members,
     workspaceId: session.workspaceId,
     role: session.role,
-    canManage: isWorkspaceAdminRole(session.role),
+    canManage: can(session.role, "team.manage"),
   });
 }

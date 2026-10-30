@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useWorkspace } from "@/components/workspace/workspace-provider";
+import { canViewFinance } from "@/lib/workspace/permissions";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useJobs,
@@ -80,6 +82,16 @@ const colorMap = {
 
 export default function DashboardLegacyPage() {
   const queryClient = useQueryClient();
+  const { role } = useWorkspace();
+  const showFinance = canViewFinance(role);
+  const financeMetricKeys = new Set([
+    "totalRevenue",
+    "totalMaterialCost",
+    "netProfit",
+  ]);
+  const visibleMetrics = METRICS.filter(
+    (m) => showFinance || !financeMetricKeys.has(m.key)
+  );
   const [filters, setFilters] = useState<DashboardFilters>(getDefaultFilters);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -198,6 +210,7 @@ export default function DashboardLegacyPage() {
         <DeliveryAlerts
           jobs={deliveryJobs}
           onSelectJob={setSelectedJob}
+          showFinance={showFinance}
         />
       )}
 
@@ -214,7 +227,7 @@ export default function DashboardLegacyPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-            {METRICS.map(({ key, label, icon: Icon, color, format }) => {
+            {visibleMetrics.map(({ key, label, icon: Icon, color, format }) => {
               const c = colorMap[color];
               const value = metrics[key as keyof typeof metrics] as number;
               return (
@@ -291,7 +304,9 @@ export default function DashboardLegacyPage() {
               </div>
             </div>
           </div>
+      {showFinance ? (
           <DashboardCharts metrics={metrics} />
+        ) : null}
         </>
       )}
 

@@ -1,5 +1,9 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  isNavItemVisible,
+  type NavVisibilityContext,
+} from "@/lib/workspace/permissions";
+import {
   AlertTriangle,
   Bell,
   Building2,
@@ -197,7 +201,6 @@ export const SETTINGS_NAV: NavItem[] = [
     href: "/settings/audit",
     icon: ScrollText,
     section: "account",
-    adminOnly: true,
   },
   {
     id: "settings-appearance",
@@ -274,13 +277,22 @@ export function applyBreadcrumbLabels(
   });
 }
 
+export type GroupNavOptions = NavVisibilityContext | { isAdmin?: boolean };
+
+function resolveNavContext(opts?: GroupNavOptions): NavVisibilityContext {
+  if (opts && "role" in opts) return opts;
+  return {
+    role: "owner",
+    isSupportAdmin: opts?.isAdmin ?? false,
+  };
+}
+
 export function groupNavItems(
   items: NavItem[],
-  opts?: { isAdmin?: boolean }
+  opts?: GroupNavOptions
 ): Array<{ section: NavSectionId; label: string; items: NavItem[] }> {
-  const visible = items.filter(
-    (item) => !item.adminOnly || opts?.isAdmin
-  );
+  const ctx = resolveNavContext(opts);
+  const visible = items.filter((item) => isNavItemVisible(item, ctx));
   const order: NavSectionId[] = [
     "overview",
     "production",

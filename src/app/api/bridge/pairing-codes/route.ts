@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generatePairingCode, hashPairingCode } from "@/lib/bridge/crypto";
 import { cloudRequiredMessage, getEntitlements, PLAN_ERROR } from "@/lib/billing/entitlements";
 import { requireWorkspaceSession } from "@/lib/workspace/active";
+import { requireRole } from "@/lib/workspace/require-role";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export async function POST() {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+  const auth = requireRole(session, "machines.manage");
+  if (!auth.ok) return auth.response;
   const { workspaceId } = session;
 
   const entitlements = await getEntitlements(supabase, workspaceId);

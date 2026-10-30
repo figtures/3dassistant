@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireWorkspaceSession } from "@/lib/workspace/active";
-import { isWorkspaceAdminRole } from "@/lib/workspace/roles";
+import { requireRole } from "@/lib/workspace/require-role";
 import {
   canRemoveMember,
   canUpdateMemberRole,
@@ -34,9 +34,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
-  if (!isWorkspaceAdminRole(session.role)) {
-    return NextResponse.json({ error: "Bu işlem için yetkiniz yok" }, { status: 403 });
-  }
+  const auth = requireRole(session, "team.manage");
+  if (!auth.ok) return auth.response;
 
   const { userId } = await context.params;
   const targetId = userId?.trim();
@@ -87,9 +86,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
   if (!session.ok) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
-  if (!isWorkspaceAdminRole(session.role)) {
-    return NextResponse.json({ error: "Bu işlem için yetkiniz yok" }, { status: 403 });
-  }
+  const auth = requireRole(session, "team.manage");
+  if (!auth.ok) return auth.response;
 
   const { userId } = await context.params;
   const targetId = userId?.trim();

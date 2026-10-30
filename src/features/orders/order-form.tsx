@@ -45,6 +45,8 @@ export type OrderFormProps = {
     onToggleListen: () => void;
   };
   filesSlot?: React.ReactNode;
+  showFinance?: boolean;
+  readOnly?: boolean;
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -66,6 +68,8 @@ export function OrderForm({
   notes,
   voice,
   filesSlot,
+  showFinance = true,
+  readOnly = false,
 }: OrderFormProps) {
   const patch = (partial: Partial<OrderFormInput>) =>
     onFormChange({ ...form, ...partial });
@@ -90,8 +94,12 @@ export function OrderForm({
   );
 
   return (
-    <div className="space-y-6">
-      <VoiceParsePanel
+    <fieldset
+      disabled={readOnly}
+      className="m-0 min-w-0 space-y-6 border-0 p-0"
+    >
+      {!readOnly ? (
+        <VoiceParsePanel
         isSupported={voice.isSupported}
         isListening={voice.isListening}
         voiceText={voice.voiceText}
@@ -103,6 +111,7 @@ export function OrderForm({
         placeholder="Müşteri, gram, malzeme, tutar ve termin bilgilerini Türkçe söyleyin…"
         onToggleListen={voice.onToggleListen}
       />
+      ) : null}
 
       <section className="space-y-3" aria-labelledby="order-section-info">
         <SectionTitle>Sipariş</SectionTitle>
@@ -277,6 +286,7 @@ export function OrderForm({
         </FormField>
       </section>
 
+      {showFinance ? (
       <section className="space-y-3">
         <SectionTitle>Ödeme</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -377,6 +387,7 @@ export function OrderForm({
           </FormField>
         </div>
       </section>
+      ) : null}
 
       <section className="space-y-3">
         <SectionTitle>Notlar</SectionTitle>
@@ -405,6 +416,6 @@ export function OrderForm({
         ) : null}
         {filesSlot}
       </section>
-    </div>
+    </fieldset>
   );
 }

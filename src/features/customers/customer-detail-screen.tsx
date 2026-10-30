@@ -16,6 +16,7 @@ import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import { formatCurrency, formatDuration, formatGrams } from "@/lib/utils";
 import { formatCurrency as formatCurrencyV2 } from "@/lib/format";
 import { buildCustomerStatsMap } from "@/features/customers/customer-utils";
+import { usePermission } from "@/components/workspace/can";
 import {
   ArrowLeft,
   Briefcase,
@@ -49,6 +50,7 @@ export type CustomerDetailScreenProps = {
 };
 
 export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) {
+  const showFinance = usePermission("finance.view");
   const { data: customers = [], isLoading: customersLoading } = useCustomers();
   const { data: jobs = [], isLoading: jobsLoading } = useCustomerJobs(customerId);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -142,29 +144,33 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
         {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam ciro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold tabular-nums text-foreground">
-              {formatCurrencyV2(stats.totalRevenue)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Bekleyen tahsilat
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold tabular-nums text-foreground">
-              {formatCurrencyV2(stats.pendingCollection)}
-            </p>
-          </CardContent>
-        </Card>
+      <div className={`grid gap-4 ${showFinance ? "sm:grid-cols-3" : "sm:grid-cols-1"}`}>
+        {showFinance ? (
+          <>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Toplam ciro</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold tabular-nums text-foreground">
+                  {formatCurrencyV2(stats.totalRevenue)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Bekleyen tahsilat
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold tabular-nums text-foreground">
+                  {formatCurrencyV2(stats.pendingCollection)}
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        ) : null}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Sipariş sayısı</CardTitle>
@@ -261,12 +267,16 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                       {job.title ?? "—"}
                     </span>
                     <span className="text-muted-foreground">{formatDuration(job.duration_minutes)}</span>
-                    <span className="tabular-nums text-foreground">
-                      {formatCurrency(job.revenue_amount)}
-                    </span>
-                    <Badge tone={paymentTone(job.payment_status ?? "unpaid")}>
-                      {PAYMENT_LABELS[job.payment_status ?? "unpaid"]}
-                    </Badge>
+                    {showFinance ? (
+                      <>
+                        <span className="tabular-nums text-foreground">
+                          {formatCurrency(job.revenue_amount)}
+                        </span>
+                        <Badge tone={paymentTone(job.payment_status ?? "unpaid")}>
+                          {PAYMENT_LABELS[job.payment_status ?? "unpaid"]}
+                        </Badge>
+                      </>
+                    ) : null}
                     <Badge tone={job.status === "completed" ? "success" : "neutral"}>
                       {STATUS_LABELS[job.status]}
                     </Badge>
@@ -289,10 +299,12 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                           <span className="text-muted-foreground">Gram: </span>
                           {formatGrams(job.grams_used)}
                         </p>
-                        <p>
-                          <span className="text-muted-foreground">Ödenen / Kalan: </span>
-                          {formatCurrency(job.amount_paid)} / {formatCurrency(job.amount_remaining)}
-                        </p>
+                        {showFinance ? (
+                          <p>
+                            <span className="text-muted-foreground">Ödenen / Kalan: </span>
+                            {formatCurrency(job.amount_paid)} / {formatCurrency(job.amount_remaining)}
+                          </p>
+                        ) : null}
                       </div>
                       {notes.length > 0 ? (
                         <div>

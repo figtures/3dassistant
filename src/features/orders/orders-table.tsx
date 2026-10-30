@@ -19,6 +19,8 @@ export type OrdersTableProps = {
   onEdit: (job: Job) => void;
   onDelete: (job: Job) => void;
   onStatusChange: (job: Job, status: JobStatus) => void;
+  showFinance?: boolean;
+  canEdit?: boolean;
 };
 
 export function OrdersTable({
@@ -31,7 +33,19 @@ export function OrdersTable({
   onEdit,
   onDelete,
   onStatusChange,
+  showFinance = true,
+  canEdit = true,
 }: OrdersTableProps) {
+  const headers = [
+    "Sipariş",
+    "Durum",
+    "Makine",
+    "Malzeme",
+    "Gram",
+    "Teslim",
+    ...(showFinance ? (["Tutar", "Ödeme", "Kalan"] as const) : []),
+    ...(canEdit ? ([""] as const) : []),
+  ];
   return (
     <>
       <div className="hidden overflow-hidden rounded-xl border border-border md:block">
@@ -40,26 +54,17 @@ export function OrdersTable({
             <thead className="sticky top-0 z-[1] bg-surface-2">
               <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="w-10 px-3 py-3">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={onToggleSelectAll}
-                    aria-label="Tümünü seç"
-                    className="size-4 rounded border-border"
-                  />
+                  {canEdit ? (
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={onToggleSelectAll}
+                      aria-label="Tümünü seç"
+                      className="size-4 rounded border-border"
+                    />
+                  ) : null}
                 </th>
-                {[
-                  "Sipariş",
-                  "Durum",
-                  "Makine",
-                  "Malzeme",
-                  "Gram",
-                  "Teslim",
-                  "Tutar",
-                  "Ödeme",
-                  "Kalan",
-                  "",
-                ].map((h) => (
+                {headers.map((h) => (
                   <th key={h || "actions"} className="px-3 py-3 font-medium">
                     {h}
                   </th>
@@ -87,13 +92,15 @@ export function OrdersTable({
                       className="px-3 py-2"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(job.id)}
-                        onChange={() => onToggleSelect(job.id)}
-                        aria-label={`${job.title ?? "Sipariş"} seç`}
-                        className="size-4 rounded border-border"
-                      />
+                      {canEdit ? (
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(job.id)}
+                          onChange={() => onToggleSelect(job.id)}
+                          aria-label={`${job.title ?? "Sipariş"} seç`}
+                          className="size-4 rounded border-border"
+                        />
+                      ) : null}
                     </td>
                     <td className="px-3 py-2">
                       <div className="font-medium text-foreground">
@@ -148,26 +155,32 @@ export function OrdersTable({
                         "—"
                       )}
                     </td>
-                    <td className="px-3 py-2 tabular-nums">
-                      {formatCurrency(job.revenue_amount ?? 0)}
-                    </td>
-                    <td className="px-3 py-2">
-                      <PaymentStatusBadge status={job.payment_status} />
-                    </td>
-                    <td className="px-3 py-2 tabular-nums text-muted-foreground">
-                      {formatCurrency(job.amount_remaining ?? 0)}
-                    </td>
-                    <td
-                      className="px-3 py-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <RowActions
-                        job={job}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        onStatusChange={onStatusChange}
-                      />
-                    </td>
+                    {showFinance ? (
+                      <>
+                        <td className="px-3 py-2 tabular-nums">
+                          {formatCurrency(job.revenue_amount ?? 0)}
+                        </td>
+                        <td className="px-3 py-2">
+                          <PaymentStatusBadge status={job.payment_status} />
+                        </td>
+                        <td className="px-3 py-2 tabular-nums text-muted-foreground">
+                          {formatCurrency(job.amount_remaining ?? 0)}
+                        </td>
+                      </>
+                    ) : null}
+                    {canEdit ? (
+                      <td
+                        className="px-3 py-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <RowActions
+                          job={job}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onStatusChange={onStatusChange}
+                        />
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
@@ -204,18 +217,22 @@ export function OrdersTable({
                   <dt className="text-muted-foreground">Teslim</dt>
                   <dd>{job.delivery_date ? formatDateShort(job.delivery_date) : "—"}</dd>
                 </div>
-                <div>
-                  <dt className="text-muted-foreground">Tutar</dt>
-                  <dd className="tabular-nums">
-                    {formatCurrency(job.revenue_amount ?? 0)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Ödeme</dt>
-                  <dd>
-                    <PaymentStatusBadge status={job.payment_status} />
-                  </dd>
-                </div>
+                {showFinance ? (
+                  <>
+                    <div>
+                      <dt className="text-muted-foreground">Tutar</dt>
+                      <dd className="tabular-nums">
+                        {formatCurrency(job.revenue_amount ?? 0)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">Ödeme</dt>
+                      <dd>
+                        <PaymentStatusBadge status={job.payment_status} />
+                      </dd>
+                    </div>
+                  </>
+                ) : null}
               </dl>
             </CardContent>
           </Card>

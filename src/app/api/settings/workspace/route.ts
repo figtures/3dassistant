@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireWorkspaceSession } from "@/lib/workspace/active";
-import { isWorkspaceAdminRole } from "@/lib/workspace/roles";
+import { can } from "@/lib/workspace/permissions";
+import { requireRole } from "@/lib/workspace/require-role";
 import {
   mergeWorkspaceBillingMeta,
   readWorkspaceBillingMeta,
@@ -45,7 +46,7 @@ export async function GET() {
     billingAddress: billing.billingAddress ?? "",
     timezone: billing.timezone ?? "Europe/Istanbul",
     currency: "TRY",
-    canEdit: isWorkspaceAdminRole(session.role),
+    canEdit: can(session.role, "workspace.edit"),
   });
 }
 
@@ -55,9 +56,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: session.status });
   }
 
-  if (!isWorkspaceAdminRole(session.role)) {
-    return NextResponse.json({ error: "Bu işlem için yetkiniz yok" }, { status: 403 });
-  }
+  const auth = requireRole(session, "workspace.edit");
+  if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as {
     name?: string;

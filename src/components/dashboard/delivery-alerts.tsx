@@ -39,6 +39,7 @@ interface DeliveryAlertsProps {
   jobs: Job[];
   onSelectJob?: (job: Job) => void;
   showCalendarLink?: boolean;
+  showFinance?: boolean;
   className?: string;
 }
 
@@ -46,6 +47,7 @@ export function DeliveryAlerts({
   jobs,
   onSelectJob,
   showCalendarLink = true,
+  showFinance = true,
   className,
 }: DeliveryAlertsProps) {
   const groups = computeDeliveryAlerts(jobs);
@@ -120,11 +122,11 @@ export function DeliveryAlerts({
                         onClick={() => onSelectJob(job)}
                         className="flex w-full items-center justify-between gap-2 rounded-lg border border-zinc-800/60 bg-zinc-950/50 px-3 py-2 text-left transition-colors hover:border-zinc-700 hover:bg-zinc-900/80"
                       >
-                        <JobAlertRow job={job} accent={style.text} />
+                        <JobAlertRow job={job} accent={style.text} showFinance={showFinance} />
                       </button>
                     ) : (
                       <div className="rounded-lg border border-zinc-800/60 bg-zinc-950/50 px-3 py-2">
-                        <JobAlertRow job={job} accent={style.text} />
+                        <JobAlertRow job={job} accent={style.text} showFinance={showFinance} />
                       </div>
                     )}
                   </li>
@@ -138,7 +140,15 @@ export function DeliveryAlerts({
   );
 }
 
-function JobAlertRow({ job, accent }: { job: Job; accent: string }) {
+function JobAlertRow({
+  job,
+  accent,
+  showFinance = true,
+}: {
+  job: Job;
+  accent: string;
+  showFinance?: boolean;
+}) {
   return (
     <>
       <div className="min-w-0">
@@ -153,7 +163,7 @@ function JobAlertRow({ job, accent }: { job: Job; accent: string }) {
         <p className={cn("text-[11px] font-medium", accent)}>
           {job.delivery_date ? formatDeliveryDate(job.delivery_date) : "—"}
         </p>
-        {job.revenue_amount != null && job.revenue_amount > 0 && (
+        {showFinance && job.revenue_amount != null && job.revenue_amount > 0 && (
           <p className="text-[10px] text-zinc-600">
             {formatCurrency(job.revenue_amount)}
           </p>

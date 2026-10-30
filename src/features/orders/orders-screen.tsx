@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/hooks/use-confirm";
+import { usePermission } from "@/components/workspace/can";
 import { useCustomers, useMachines } from "@/hooks/use-data";
 import {
   Button,
@@ -57,6 +58,8 @@ function OrdersV2Content() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const confirmAction = useConfirm();
+  const canEditOrders = usePermission("orders.edit");
+  const showFinance = usePermission("finance.view");
 
   const view =
     searchParams.get("view") === "board" ? ("board" as const) : ("table" as const);
@@ -277,10 +280,12 @@ function OrdersV2Content() {
               Pano
             </button>
           </div>
-          <Button type="button" onClick={() => openOrder("new")}>
-            <Plus className="size-4" aria-hidden />
-            Yeni sipariş
-          </Button>
+          {canEditOrders ? (
+            <Button type="button" onClick={() => openOrder("new")}>
+              <Plus className="size-4" aria-hidden />
+              Yeni sipariş
+            </Button>
+          ) : null}
         </div>
       </header>
 
@@ -385,7 +390,7 @@ function OrdersV2Content() {
         />
       ) : null}
 
-      {tableEnabled && bulkBar ? (
+      {tableEnabled && bulkBar && canEditOrders ? (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm">
           <span className="font-medium">{selectedIds.size} seçili</span>
           <Button
@@ -435,9 +440,11 @@ function OrdersV2Content() {
               : "İlk siparişinizi oluşturun."
           }
           action={
-            <Button type="button" onClick={() => openOrder("new")}>
-              Yeni sipariş
-            </Button>
+            canEditOrders ? (
+              <Button type="button" onClick={() => openOrder("new")}>
+                Yeni sipariş
+              </Button>
+            ) : undefined
           }
         />
       ) : tableEnabled ? (
@@ -462,6 +469,8 @@ function OrdersV2Content() {
             onEdit={(job) => openOrder(job.id)}
             onDelete={(job) => void handleDelete(job)}
             onStatusChange={(job, status) => void handleStatusChange(job, status)}
+            showFinance={showFinance}
+            canEdit={canEditOrders}
           />
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
             <span>

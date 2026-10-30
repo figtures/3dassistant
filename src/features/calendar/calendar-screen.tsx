@@ -19,11 +19,13 @@ import {
 import { CalendarCheck, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
+import { usePermission } from "@/components/workspace/can";
 
 type CalendarView = "month" | "list";
 
 export function CalendarV2() {
   const queryClient = useQueryClient();
+  const showFinance = usePermission("finance.view");
 
   const [view, setView] = useState<CalendarView>("month");
   const [viewMonth, setViewMonth] = useState(new Date());
@@ -108,6 +110,7 @@ export function CalendarV2() {
           jobs={deliveryJobs}
           onSelectJob={(job) => setSelectedJob(job)}
           showCalendarLink={false}
+          showFinance={showFinance}
         />
       )}
 

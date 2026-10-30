@@ -21,6 +21,7 @@ import {
   getVisibleNavItems,
   navItemKeywords,
 } from "@/components/v2/command/command-palette-data";
+import { useWorkspace } from "@/components/workspace/workspace-provider";
 import {
   countGlobalSearchResults,
   useGlobalSearch,
@@ -58,6 +59,7 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const router = useRouter();
   const { openReport } = useSupportReport();
+  const { role } = useWorkspace();
 
   const close = useCallback(() => {
     onOpenChange(false);
@@ -79,7 +81,7 @@ export function CommandPalette({
     [close, router]
   );
 
-  const navItems = getVisibleNavItems(isAdmin);
+  const navItems = getVisibleNavItems({ role, isSupportAdmin: isAdmin });
   const [query, setQuery] = useState("");
   const { debouncedQuery, data: searchData, isFetching, isLoading } =
     useGlobalSearch(query);

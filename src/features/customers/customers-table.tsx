@@ -15,6 +15,8 @@ export type CustomersTableProps = {
   statsMap: Map<string, CustomerStats>;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  showFinance?: boolean;
+  canEdit?: boolean;
 };
 
 export function CustomersTable({
@@ -22,7 +24,18 @@ export function CustomersTable({
   statsMap,
   onEdit,
   onDelete,
+  showFinance = true,
+  canEdit = true,
 }: CustomersTableProps) {
+  const headers = [
+    "Ad",
+    "Firma",
+    "İletişim",
+    "Sipariş",
+    ...(showFinance ? (["Toplam ciro"] as const) : []),
+    "Son sipariş",
+    "",
+  ];
   return (
     <>
       <div className="hidden overflow-hidden rounded-xl border border-border md:block">
@@ -30,13 +43,11 @@ export function CustomersTable({
           <table className="w-full min-w-[880px] text-sm">
             <thead className="sticky top-0 z-[1] bg-surface-2">
               <tr className="border-b border-border text-left text-muted-foreground">
-                {["Ad", "Firma", "İletişim", "Sipariş", "Toplam ciro", "Son sipariş", ""].map(
-                  (h) => (
-                    <th key={h || "actions"} className="px-4 py-3 font-medium">
-                      {h}
-                    </th>
-                  )
-                )}
+                {headers.map((h) => (
+                  <th key={h || "actions"} className="px-4 py-3 font-medium">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -62,9 +73,11 @@ export function CustomersTable({
                     <td className="px-4 py-3 tabular-nums text-foreground">
                       {stats?.orderCount ?? 0}
                     </td>
-                    <td className="px-4 py-3 tabular-nums text-foreground">
-                      {formatCurrency(stats?.totalRevenue ?? 0)}
-                    </td>
+                    {showFinance ? (
+                      <td className="px-4 py-3 tabular-nums text-foreground">
+                        {formatCurrency(stats?.totalRevenue ?? 0)}
+                      </td>
+                    ) : null}
                     <td className="px-4 py-3 text-muted-foreground">
                       {stats?.lastOrderDate ? formatDateShort(stats.lastOrderDate) : "—"}
                     </td>
@@ -77,24 +90,28 @@ export function CustomersTable({
                         >
                           <Eye className="size-4" />
                         </Link>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onEdit(c.id)}
-                          aria-label={`${c.name} düzenle`}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onDelete(c.id)}
-                          aria-label={`${c.name} sil`}
-                        >
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
+                        {canEdit ? (
+                          <>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(c.id)}
+                              aria-label={`${c.name} düzenle`}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onDelete(c.id)}
+                              aria-label={`${c.name} sil`}
+                            >
+                              <Trash2 className="size-4 text-destructive" />
+                            </Button>
+                          </>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -125,24 +142,28 @@ export function CustomersTable({
                     <p className="mt-1 text-xs text-muted-foreground">{formatContactLine(c)}</p>
                   </div>
                   <div className="flex shrink-0 gap-0.5">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(c.id)}
-                      aria-label={`${c.name} düzenle`}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(c.id)}
-                      aria-label={`${c.name} sil`}
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
+                    {canEdit ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onEdit(c.id)}
+                          aria-label={`${c.name} düzenle`}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDelete(c.id)}
+                          aria-label={`${c.name} sil`}
+                        >
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
                 <dl className="grid grid-cols-2 gap-2 text-xs">
@@ -152,12 +173,14 @@ export function CustomersTable({
                       {stats?.orderCount ?? 0}
                     </dd>
                   </div>
-                  <div>
-                    <dt className="text-muted-foreground">Ciro</dt>
-                    <dd className="tabular-nums font-medium text-foreground">
-                      {formatCurrency(stats?.totalRevenue ?? 0)}
-                    </dd>
-                  </div>
+                  {showFinance ? (
+                    <div>
+                      <dt className="text-muted-foreground">Ciro</dt>
+                      <dd className="tabular-nums font-medium text-foreground">
+                        {formatCurrency(stats?.totalRevenue ?? 0)}
+                      </dd>
+                    </div>
+                  ) : null}
                 </dl>
               </CardContent>
             </Card>

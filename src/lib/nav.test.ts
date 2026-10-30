@@ -7,6 +7,7 @@ import {
   NAV_ITEMS,
   SETTINGS_NAV,
 } from "@/lib/nav";
+import { isNavItemVisible } from "@/lib/workspace/permissions";
 
 describe("getBreadcrumbs", () => {
   it("maps known routes", () => {
@@ -67,10 +68,11 @@ describe("groupNavItems", () => {
     assert.ok(production?.items.some((i) => i.id === "orders"));
   });
 
-  it("includes settings in account section", () => {
-    const groups = groupNavItems(NAV_ITEMS, { isAdmin: false });
-    const account = groups.find((g) => g.section === "account");
-    assert.ok(account?.items.some((i) => i.id === "settings"));
+  it("hides production routes for viewer", () => {
+    const groups = groupNavItems(NAV_ITEMS, { role: "viewer", isSupportAdmin: false });
+    const all = groups.flatMap((g) => g.items);
+    assert.ok(all.some((i) => i.id === "orders"));
+    assert.ok(!all.some((i) => i.id === "machines"));
   });
 });
 
@@ -84,10 +86,18 @@ describe("SETTINGS_NAV", () => {
     assert.ok(hrefs.includes("/settings/billing"));
   });
 
-  it("hides audit for non-admin filter", () => {
-    const visible = SETTINGS_NAV.filter((i) => !i.adminOnly);
+  it("hides audit for viewer", () => {
+    const visible = SETTINGS_NAV.filter((i) =>
+      isNavItemVisible(i, { role: "viewer", isSupportAdmin: false })
+    );
     assert.ok(!visible.some((i) => i.href === "/settings/audit"));
-    assert.ok(SETTINGS_NAV.some((i) => i.href === "/settings/audit"));
+  });
+
+  it("shows audit for workspace admin role", () => {
+    const visible = SETTINGS_NAV.filter((i) =>
+      isNavItemVisible(i, { role: "admin", isSupportAdmin: false })
+    );
+    assert.ok(visible.some((i) => i.href === "/settings/audit"));
   });
 });
 

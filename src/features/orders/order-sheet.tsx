@@ -40,6 +40,7 @@ import {
   type PendingNote,
 } from "@/features/orders/use-order-mutations";
 import { useTenantId } from "@/components/workspace/workspace-provider";
+import { usePermission } from "@/components/workspace/can";
 import { formatDateShort } from "@/lib/format";
 import { ExternalLink, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -62,6 +63,8 @@ export function OrderSheet({
   const queryClient = useQueryClient();
   const tenantId = useTenantId();
   const confirmAction = useConfirm();
+  const canEditOrders = usePermission("orders.edit");
+  const showFinance = usePermission("finance.view");
   const isNew = !orderId || orderId === "new";
   const { data: loadedJob, isLoading: jobLoading } = useOrderById(
     isNew ? null : orderId
@@ -393,11 +396,13 @@ export function OrderSheet({
                   />
                 </label>
               }
+              showFinance={showFinance}
+              readOnly={!canEditOrders}
             />
           )}
         </div>
         <DialogFooter className="gap-2 sm:justify-between">
-          {!isNew ? (
+          {!isNew && canEditOrders ? (
             <div className="flex flex-wrap items-center gap-1">
               <Button
                 type="button"
@@ -435,11 +440,13 @@ export function OrderSheet({
               onClick={() => void requestClose(false)}
               disabled={saving}
             >
-              İptal
+              {canEditOrders ? "İptal" : "Kapat"}
             </Button>
-            <Button type="button" onClick={() => void handleSave()} loading={saving}>
-              Kaydet
-            </Button>
+            {canEditOrders ? (
+              <Button type="button" onClick={() => void handleSave()} loading={saving}>
+                Kaydet
+              </Button>
+            ) : null}
           </div>
         </DialogFooter>
       </DialogContent>
