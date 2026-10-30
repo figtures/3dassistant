@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
-import { UpgradePromptHost } from "@/features/billing/upgrade-prompt";
+import { UpgradePromptHostLazy } from "@/features/billing/upgrade-prompt-lazy";
 import { WorkspaceProvider } from "@/components/workspace/workspace-provider";
 import { loadWorkspaceSession } from "@/lib/workspace/active";
 import { getAuthUser } from "@/lib/supabase/get-auth-user";
@@ -42,7 +42,7 @@ export default async function OnboardingLayout({
         {children}
       </main>
     </div>
-    <UpgradePromptHost />
+    <UpgradePromptHostLazy />
     </WorkspaceProvider>
   );
 }

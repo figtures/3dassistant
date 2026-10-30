@@ -35,6 +35,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  // Pazarlama ana sayfası — oturum yenilemesi gerekmez (proxy gecikmesini keser).
+  if (pathname === "/") {
+    return NextResponse.next({ request });
+  }
+
   // RSC/prefetch (belge navigasyonu hariç): gereksiz getUser çağrılarını kes.
   if (shouldSkipSupabaseAuthRefresh(request)) {
     return NextResponse.next({ request });

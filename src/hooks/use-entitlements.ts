@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { Entitlements } from "@/lib/billing/entitlements";
-import { useTenantId } from "@/components/workspace/workspace-provider";
+import { useOptionalWorkspace } from "@/components/workspace/workspace-provider";
 
 export type EntitlementsResponse = {
   entitlements: Entitlements;
@@ -20,10 +20,12 @@ export async function fetchEntitlements(): Promise<EntitlementsResponse> {
 }
 
 export function useEntitlements() {
-  const tenantId = useTenantId();
+  const workspace = useOptionalWorkspace();
+  const tenantId = workspace?.id ?? null;
   return useQuery({
     queryKey: [...ENTITLEMENTS_QUERY_KEY, tenantId],
     queryFn: fetchEntitlements,
+    enabled: tenantId != null,
   });
 }
 
