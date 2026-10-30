@@ -18,6 +18,7 @@ function LoginFormInner() {
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered") === "1";
   const authError = searchParams.get("error") === "auth_callback_failed";
+  const nextPath = searchParams.get("next")?.trim() || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,7 @@ function LoginFormInner() {
 
     toast.success("Hoş geldiniz!");
     router.refresh();
-    router.replace("/dashboard");
+    router.replace(nextPath.startsWith("/") ? nextPath : "/dashboard");
   }
 
   return (

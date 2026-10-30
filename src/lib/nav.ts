@@ -149,6 +149,7 @@ const ROUTE_LABELS: Record<string, string> = {
   billing: "Abonelik",
   support: "Destek",
   settings: "Ayarlar",
+  team: "Ekip",
   orders: "Siparişler",
 };
 
