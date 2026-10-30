@@ -1281,6 +1281,13 @@ CREATE POLICY "Users delete own support attachments"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'support-attachments' AND auth.uid()::text = (storage.foldername(name))[1]);
 
+-- 2w) 028_low_stock_threshold.sql
+ALTER TABLE material_colors
+  ADD COLUMN IF NOT EXISTS low_stock_grams INTEGER;
+
+COMMENT ON COLUMN material_colors.low_stock_grams IS
+  'Düşük stok uyarı eşiği (gram). NULL ise uygulama varsayılan 500 g kullanır.';
+
 -- 3) Auto confirm
 UPDATE auth.users
 SET email_confirmed_at = COALESCE(email_confirmed_at, NOW())
