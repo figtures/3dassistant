@@ -1,17 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/get-auth-user";
 
 export default async function OnboardingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     redirect("/login?next=/onboarding");

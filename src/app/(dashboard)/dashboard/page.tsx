@@ -1,13 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/get-auth-user";
 import { isUiV2 } from "@/lib/flags/ui-version.server";
 import DashboardLegacyPage from "@/legacy/pages/dashboard-page";
 import { DashboardV2 } from "@/features/dashboard/DashboardV2";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const displayName =
     (user?.user_metadata?.full_name as string | undefined)?.trim() ||

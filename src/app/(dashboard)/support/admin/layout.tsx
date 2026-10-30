@@ -1,12 +1,9 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/get-auth-user";
 import { isSupportAdminEmail } from "@/lib/support/admin";
 
 export default async function SupportAdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user || !isSupportAdminEmail(user.email)) {
     notFound();

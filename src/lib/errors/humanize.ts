@@ -14,6 +14,8 @@ function messageFromCode(code: string | undefined): string | null {
       return "Şifre çok zayıf. En az 6 karakter ve daha güçlü bir şifre seçin.";
     case "over_email_send_rate_limit":
       return "Çok fazla e-posta gönderildi. Lütfen birkaç dakika sonra tekrar deneyin.";
+    case "over_request_rate_limit":
+      return "Çok fazla istek gönderildi. Lütfen yaklaşık bir dakika bekleyip tekrar deneyin.";
     case "otp_expired":
     case "expired_token":
       return "Bağlantının süresi doldu. Yeni bir sıfırlama linki isteyin.";

@@ -16,4 +16,12 @@ describe("humanizeAuthError", () => {
   it("falls back for unknown", () => {
     assert.match(humanizeAuthError(new Error("x")), /ters gitti/i);
   });
+
+  it("maps over_request_rate_limit", () => {
+    const err = Object.assign(new Error("Rate limit"), {
+      code: "over_request_rate_limit",
+      status: 429,
+    });
+    assert.match(humanizeAuthError(err), /dakika/i);
+  });
 });
