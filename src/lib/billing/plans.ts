@@ -73,7 +73,27 @@ const PRICE_ENV: Record<PaidPlanKey, string> = {
   farm: "PADDLE_FARM_PRICE_ID",
 };
 
-export function priceIdForPlan(plan: PaidPlanKey): string | null {
+const YEARLY_PRICE_ENV: Record<PaidPlanKey, string> = {
+  starter: "PADDLE_STARTER_YEARLY_PRICE_ID",
+  pro: "PADDLE_PRO_YEARLY_PRICE_ID",
+  farm: "PADDLE_FARM_YEARLY_PRICE_ID",
+};
+
+export type BillingInterval = "month" | "year";
+
+export function yearlyPriceIdForPlan(plan: PaidPlanKey): string | null {
+  return process.env[YEARLY_PRICE_ENV[plan]]?.trim() || null;
+}
+
+export function hasYearlyCheckoutPrices(): boolean {
+  return PAID_PLAN_KEYS.some((key) => Boolean(yearlyPriceIdForPlan(key)));
+}
+
+export function priceIdForPlan(
+  plan: PaidPlanKey,
+  interval: BillingInterval = "month"
+): string | null {
+  if (interval === "year") return yearlyPriceIdForPlan(plan);
   return process.env[PRICE_ENV[plan]]?.trim() || null;
 }
 

@@ -7,7 +7,13 @@ import {
   isPaddleConfigured,
   PaddleApiError,
 } from "@/lib/billing/paddle";
-import { isEntitledStatus, isPaidPlanKey, PLANS, priceIdForPlan } from "@/lib/billing/plans";
+import {
+  isEntitledStatus,
+  isPaidPlanKey,
+  PLANS,
+  priceIdForPlan,
+  type BillingInterval,
+} from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +33,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { plan?: unknown };
+  let body: { plan?: unknown; interval?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -38,7 +44,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Geçersiz plan" }, { status: 400 });
   }
   const plan = body.plan;
-  const priceId = priceIdForPlan(plan);
+  const interval: BillingInterval = body.interval === "year" ? "year" : "month";
+  const priceId = priceIdForPlan(plan, interval);
   if (!priceId) {
     return NextResponse.json({ error: "Bu plan şu an satın alınamıyor" }, { status: 503 });
   }
