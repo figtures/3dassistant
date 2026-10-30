@@ -486,3 +486,17 @@ export interface DashboardMetrics {
   salesByChannel: { channel: string; count: number; revenue: number }[];
   lowStockCatalogItems: { sku: string; name: string; quantity: number }[];
 }
+
+export type AuditAction = "insert" | "update" | "delete";
+
+export interface AuditEvent {
+  id: number;
+  workspace_id: string;
+  actor_id: string | null;
+  action: AuditAction;
+  entity: string;
+  entity_id: string | null;
+  diff: Record<string, unknown> | null;
+  created_at: string;
+  actor?: Pick<Profile, "full_name" | "email"> | null;
+}

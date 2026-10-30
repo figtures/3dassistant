@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { buildOrderTimelineEvents } from "@/features/orders/order-timeline";
 
 const base = {
+  id: "job-1",
+  title: "Test sipariş",
   created_at: "2026-01-01T10:00:00.000Z",
   updated_at: "2026-01-01T10:00:00.000Z",
   status: "pending" as const,
@@ -58,5 +60,27 @@ describe("buildOrderTimelineEvents", () => {
     assert.ok(events.some((e) => e.id === "payment-recorded"));
     assert.ok(events.some((e) => e.id === "payment-due"));
     assert.ok(events.some((e) => e.id === "installments"));
+  });
+
+  it("prefers audit_events over legacy heuristics", () => {
+    const events = buildOrderTimelineEvents(
+      { ...base, title: "Vazo" },
+      [
+        {
+          id: 10,
+          workspace_id: "ws",
+          actor_id: "u1",
+          action: "update",
+          entity: "jobs",
+          entity_id: "job-1",
+          diff: { status: { old: "pending", new: "in_progress" } },
+          created_at: "2026-01-02T09:00:00.000Z",
+          actor: { full_name: "Selin", email: null },
+        },
+      ]
+    );
+    assert.ok(events.some((e) => e.title.includes("Üretimde")));
+    assert.ok(!events.some((e) => e.id === "created"));
+    assert.ok(!events.some((e) => e.id === "status-snapshot"));
   });
 });

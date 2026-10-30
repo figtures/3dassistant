@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import type { Job, JobStatus, PaymentStatus } from "@/types/database";
+import type { AuditEvent, Job, JobStatus, PaymentStatus } from "@/types/database";
+import { mapAuditEventRows } from "@/lib/audit/map-rows";
 import { todayIsoInIstanbul } from "@/lib/format";
 import { useTenantId } from "@/components/workspace/workspace-provider";
 import type { OrderTabId } from "@/features/orders/order-constants";
@@ -176,6 +177,34 @@ export function useOrderById(orderId: string | null) {
         .single();
       if (error) throw error;
       return data as Job;
+    },
+  });
+}
+
+export function useOrderAuditEvents(orderId: string | null) {
+  const tenantId = useTenantId();
+  return useQuery({
+    queryKey: ["order", "audit", tenantId, orderId],
+    enabled: !!orderId && orderId !== "new",
+    queryFn: async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("audit_events")
+        .select(
+          "id, workspace_id, actor_id, action, entity, entity_id, diff, created_at, actor:profiles(full_name, email)"
+        )
+        .eq("workspace_id", tenantId)
+        .eq("entity", "jobs")
+        .eq("entity_id", orderId!)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        if (error.code === "42P01" || error.message.includes("audit_events")) {
+          return [];
+        }
+        throw error;
+      }
+      return mapAuditEventRows(data);
     },
   });
 }

@@ -21,14 +21,14 @@ import { OrderSheet } from "@/features/orders/order-sheet";
 import { OrderStatusBadge } from "@/features/orders/order-status-badge";
 import { PaymentStatusBadge } from "@/features/orders/payment-status-badge";
 import { buildOrderTimelineEvents } from "@/features/orders/order-timeline";
-import { useOrderById } from "@/features/orders/queries";
+import { useOrderAuditEvents, useOrderById } from "@/features/orders/queries";
 import { updateOrderStatus } from "@/features/orders/use-order-mutations";
-import { useBreadcrumbLabel } from "@/hooks/use-breadcrumb-label";
 import {
   formatDate,
   formatDateShort,
   todayIsoInIstanbul,
 } from "@/lib/format";
+import { useBreadcrumbLabel } from "@/hooks/use-breadcrumb-label";
 import type { Job, JobStatus } from "@/types/database";
 import { ArrowLeft, CalendarClock, FileText, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -65,6 +65,7 @@ function computeMaterialCost(job: Job): number {
 export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
   const queryClient = useQueryClient();
   const { data: job, isLoading, isError, refetch } = useOrderById(orderId);
+  const { data: auditEvents = [] } = useOrderAuditEvents(orderId);
   const [now, setNow] = useState(() => Date.now());
   const [sheetOpen, setSheetOpen] = useState(false);
   const [statusPending, setStatusPending] = useState(false);
@@ -78,7 +79,9 @@ export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
 
   const timelineEvents = useMemo((): TimelineEvent[] => {
     if (!job) return [];
-    return buildOrderTimelineEvents(job).map((event) => ({
+    return buildOrderTimelineEvents(job, auditEvents, {
+      entityLabels: { [job.id]: job.title ?? "Sipariş" },
+    }).map((event) => ({
       id: event.id,
       at: event.at,
       title: event.title,
@@ -89,7 +92,7 @@ export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
       ) : undefined,
       icon: <FileText className="size-3.5" aria-hidden />,
     }));
-  }, [job]);
+  }, [job, auditEvents]);
 
   const costs = useMemo(() => {
     if (!job) return null;
