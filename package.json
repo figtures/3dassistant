@@ -25,6 +25,7 @@
     "test:flags": "npx tsx --test src/lib/flags/*.test.ts",
     "test:ds": "npx tsx --test src/components/ds/ds.test.ts",
     "test:nav": "npx tsx --test src/lib/nav.test.ts",
+    "test:onboarding": "npx tsx --test src/features/onboarding/onboarding-state.test.ts",
     "test:color-contrast": "npx tsx --test src/lib/color-contrast.test.ts",
     "test:bridge-camera": "npx tsx --test src/lib/bridge/camera.test.ts",
     "test:telemetry-history": "npx tsx --test src/lib/printer-monitoring/telemetry-history.test.ts",
