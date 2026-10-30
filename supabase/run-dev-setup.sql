@@ -1288,6 +1288,236 @@ ALTER TABLE material_colors
 COMMENT ON COLUMN material_colors.low_stock_grams IS
   'Düşük stok uyarı eşiği (gram). NULL ise uygulama varsayılan 500 g kullanır.';
 
+-- 2x) 029_workspaces.sql
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
+CREATE TABLE IF NOT EXISTS public.workspaces (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ui_version TEXT CHECK (ui_version IN ('v1', 'v2'))
+);
+
+COMMENT ON TABLE public.workspaces IS
+  'Kiracı çalışma alanı; sahip kullanıcının id''si ile aynı uuid (P3-01 backfill).';
+
+CREATE TABLE IF NOT EXISTS public.workspace_members (
+  workspace_id UUID NOT NULL REFERENCES public.workspaces (id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'operator', 'accountant', 'viewer')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (workspace_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspace_members_user ON public.workspace_members (user_id);
+
+CREATE TABLE IF NOT EXISTS public.workspace_invites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id UUID NOT NULL REFERENCES public.workspaces (id) ON DELETE CASCADE,
+  email CITEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'operator', 'accountant', 'viewer')),
+  token_hash TEXT NOT NULL,
+  invited_by UUID REFERENCES auth.users (id) ON DELETE SET NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  accepted_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspace_invites_workspace ON public.workspace_invites (workspace_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_invites_email ON public.workspace_invites (email);
+
+CREATE OR REPLACE FUNCTION public.is_workspace_member(ws UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.workspace_members wm
+    WHERE wm.workspace_id = ws
+      AND wm.user_id = auth.uid()
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.workspace_role(ws UUID)
+RETURNS TEXT
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT wm.role
+  FROM public.workspace_members wm
+  WHERE wm.workspace_id = ws
+    AND wm.user_id = auth.uid()
+  LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_workspace_admin(ws UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.workspace_role(ws) IN ('owner', 'admin'), false);
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_workspace_member(UUID) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.workspace_role(UUID) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.is_workspace_admin(UUID) TO authenticated, anon;
+
+INSERT INTO public.workspaces (id, name)
+SELECT
+  p.id,
+  COALESCE(
+    NULLIF(TRIM(p.company_name), ''),
+    NULLIF(TRIM(p.full_name), ''),
+    'Atölyem'
+  )
+FROM public.profiles p
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.workspace_members (workspace_id, user_id, role)
+SELECT p.id, p.id, 'owner'
+FROM public.profiles p
+ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
+INSERT INTO public.workspaces (id, name)
+SELECT
+  u.id,
+  COALESCE(
+    NULLIF(TRIM(u.raw_user_meta_data->>'company_name'), ''),
+    NULLIF(TRIM(u.raw_user_meta_data->>'full_name'), ''),
+    'Atölyem'
+  )
+FROM auth.users u
+WHERE NOT EXISTS (SELECT 1 FROM public.workspaces w WHERE w.id = u.id)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.workspace_members (workspace_id, user_id, role)
+SELECT u.id, u.id, 'owner'
+FROM auth.users u
+WHERE EXISTS (SELECT 1 FROM public.workspaces w WHERE w.id = u.id)
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.workspace_members wm
+    WHERE wm.workspace_id = u.id
+      AND wm.user_id = u.id
+  )
+ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  ws_name TEXT;
+BEGIN
+  ws_name := COALESCE(
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'company_name'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+    'Atölyem'
+  );
+
+  INSERT INTO public.profiles (id, email, full_name, company_name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'company_name'), '')
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
+    company_name = COALESCE(EXCLUDED.company_name, public.profiles.company_name);
+
+  INSERT INTO public.workspaces (id, name)
+  VALUES (NEW.id, ws_name)
+  ON CONFLICT (id) DO NOTHING;
+
+  INSERT INTO public.workspace_members (workspace_id, user_id, role)
+  VALUES (NEW.id, NEW.id, 'owner')
+  ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE WARNING 'handle_new_user failed for %: %', NEW.email, SQLERRM;
+    RETURN NEW;
+END;
+$$;
+
+ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workspace_invites ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Workspace members can view workspace" ON public.workspaces;
+CREATE POLICY "Workspace members can view workspace"
+  ON public.workspaces
+  FOR SELECT
+  USING (public.is_workspace_member(id));
+
+DROP POLICY IF EXISTS "Workspace admins can update workspace" ON public.workspaces;
+CREATE POLICY "Workspace admins can update workspace"
+  ON public.workspaces
+  FOR UPDATE
+  USING (public.is_workspace_admin(id))
+  WITH CHECK (public.is_workspace_admin(id));
+
+DROP POLICY IF EXISTS "Workspace members can view members" ON public.workspace_members;
+CREATE POLICY "Workspace members can view members"
+  ON public.workspace_members
+  FOR SELECT
+  USING (public.is_workspace_member(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace admins can insert members" ON public.workspace_members;
+CREATE POLICY "Workspace admins can insert members"
+  ON public.workspace_members
+  FOR INSERT
+  WITH CHECK (public.is_workspace_admin(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace admins can update members" ON public.workspace_members;
+CREATE POLICY "Workspace admins can update members"
+  ON public.workspace_members
+  FOR UPDATE
+  USING (public.is_workspace_admin(workspace_id))
+  WITH CHECK (public.is_workspace_admin(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace admins can delete members" ON public.workspace_members;
+CREATE POLICY "Workspace admins can delete members"
+  ON public.workspace_members
+  FOR DELETE
+  USING (public.is_workspace_admin(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace members can view invites" ON public.workspace_invites;
+CREATE POLICY "Workspace members can view invites"
+  ON public.workspace_invites
+  FOR SELECT
+  USING (public.is_workspace_member(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace admins can insert invites" ON public.workspace_invites;
+CREATE POLICY "Workspace admins can insert invites"
+  ON public.workspace_invites
+  FOR INSERT
+  WITH CHECK (public.is_workspace_admin(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace admins can update invites" ON public.workspace_invites;
+CREATE POLICY "Workspace admins can update invites"
+  ON public.workspace_invites
+  FOR UPDATE
+  USING (public.is_workspace_admin(workspace_id))
+  WITH CHECK (public.is_workspace_admin(workspace_id));
+
+DROP POLICY IF EXISTS "Workspace admins can delete invites" ON public.workspace_invites;
+CREATE POLICY "Workspace admins can delete invites"
+  ON public.workspace_invites
+  FOR DELETE
+  USING (public.is_workspace_admin(workspace_id));
+
 -- 3) Auto confirm
 UPDATE auth.users
 SET email_confirmed_at = COALESCE(email_confirmed_at, NOW())
