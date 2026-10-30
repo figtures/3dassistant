@@ -54,7 +54,7 @@ const KPI_ITEMS: KpiDef[] = [
     key: "criticalStock",
     label: "Kritik stok",
     icon: Package,
-    href: "/materials",
+    href: "/materials?stock=critical",
     accentClass: "text-[var(--state-paused)]",
     warnWhenPositive: true,
   },

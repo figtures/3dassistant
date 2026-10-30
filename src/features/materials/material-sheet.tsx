@@ -40,7 +40,7 @@ export function MaterialSheet({
   function addColorRow() {
     onColorsChange([
       ...colors,
-      { color_name: "", hex_code: "", stock_grams: "" },
+      { color_name: "", hex_code: "", stock_grams: "", low_stock_grams: "" },
     ]);
   }
 
@@ -114,7 +114,7 @@ export function MaterialSheet({
               {colors.map((row, index) => (
                 <div
                   key={row.id ?? `new-${index}`}
-                  className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_88px_100px_44px] sm:items-end"
+                  className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_88px_100px_100px_44px] sm:items-end"
                 >
                   {index === 0 ? (
                     <FormField label="Renk adı">
@@ -185,6 +185,38 @@ export function MaterialSheet({
                       value={row.stock_grams}
                       onChange={(e) =>
                         updateColorRow(index, { stock_grams: e.target.value })
+                      }
+                      placeholder="500"
+                    />
+                  )}
+                  {index === 0 ? (
+                    <FormField
+                      label="Eşik (g)"
+                      description="Boş bırakılırsa 500 g"
+                    >
+                      {(field) => (
+                        <Input
+                          {...field}
+                          type="number"
+                          min={0}
+                          value={row.low_stock_grams}
+                          onChange={(e) =>
+                            updateColorRow(index, {
+                              low_stock_grams: e.target.value,
+                            })
+                          }
+                          placeholder="500"
+                        />
+                      )}
+                    </FormField>
+                  ) : (
+                    <Input
+                      aria-label="Düşük stok eşiği (gram)"
+                      type="number"
+                      min={0}
+                      value={row.low_stock_grams}
+                      onChange={(e) =>
+                        updateColorRow(index, { low_stock_grams: e.target.value })
                       }
                       placeholder="500"
                     />

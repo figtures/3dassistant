@@ -5,10 +5,28 @@ export type ColorFormRow = {
   color_name: string;
   hex_code: string;
   stock_grams: string;
+  /** Boş = varsayılan eşik (500 g) */
+  low_stock_grams: string;
 };
 
 export function emptyColorRow(): ColorFormRow {
-  return { color_name: "", hex_code: "", stock_grams: "" };
+  return { color_name: "", hex_code: "", stock_grams: "", low_stock_grams: "" };
+}
+
+function parseLowStockGrams(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const n = parseInt(trimmed, 10);
+  if (Number.isNaN(n) || n < 0) return null;
+  return n;
+}
+
+function isMissingLowStockColumnError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("low_stock_grams") &&
+    (lower.includes("column") || lower.includes("schema cache"))
+  );
 }
 
 export async function syncMaterialColors(
@@ -46,22 +64,35 @@ export async function syncMaterialColors(
 
   for (let i = 0; i < valid.length; i++) {
     const row = valid[i];
-    const payload = {
+    const lowStock = parseLowStockGrams(row.low_stock_grams);
+    const payload: Record<string, unknown> = {
       material_id: materialId,
       user_id: userId,
       color_name: row.color_name.trim(),
       hex_code: row.hex_code.trim() || null,
       stock_grams: parseInt(row.stock_grams, 10) || 0,
       sort_order: i,
+      low_stock_grams: lowStock,
     };
     if (row.id) {
-      const { error } = await supabase
+      let { error } = await supabase
         .from("material_colors")
         .update(payload)
         .eq("id", row.id);
+      if (error && isMissingLowStockColumnError(error.message)) {
+        const { low_stock_grams: _drop, ...fallback } = payload;
+        ({ error } = await supabase
+          .from("material_colors")
+          .update(fallback)
+          .eq("id", row.id));
+      }
       if (error) return { error: error.message };
     } else {
-      const { error } = await supabase.from("material_colors").insert(payload);
+      let { error } = await supabase.from("material_colors").insert(payload);
+      if (error && isMissingLowStockColumnError(error.message)) {
+        const { low_stock_grams: _drop, ...fallback } = payload;
+        ({ error } = await supabase.from("material_colors").insert(fallback));
+      }
       if (error) return { error: error.message };
     }
   }

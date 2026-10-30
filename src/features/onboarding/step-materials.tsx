@@ -74,6 +74,7 @@ export function StepMaterials({ onContinue, onSkip }: StepMaterialsProps) {
             color_name: color.color_name,
             hex_code: color.hex_code,
             stock_grams: "1000",
+            low_stock_grams: "",
           },
         ]
       );

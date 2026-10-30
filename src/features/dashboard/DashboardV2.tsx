@@ -10,6 +10,7 @@ import { useDashboardKpis } from "@/features/dashboard/use-dashboard-kpis";
 import { formatDate } from "@/lib/format";
 import { SetupChecklistCard } from "@/features/onboarding/setup-checklist-card";
 import { SampleDataBanner } from "@/features/onboarding/sample-data-banner";
+import { AttentionList } from "@/features/dashboard/attention-list";
 
 function greetingForHour(hour: number): string {
   if (hour < 12) return "Günaydın";
@@ -42,6 +43,8 @@ export function DashboardV2({ displayName }: DashboardV2Props) {
         </header>
         <SetupChecklistCard className="w-full shrink-0 lg:max-w-sm" />
       </div>
+
+      <AttentionList />
 
       {isError ? (
         <div

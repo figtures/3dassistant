@@ -27,6 +27,8 @@ import {
   type MaterialFormValues,
 } from "@/features/materials/material-mutations";
 import type { Material, MaterialColor } from "@/types/database";
+import { isLowStock, lowStockThreshold } from "@/lib/stock";
+import { cn } from "@/lib/utils";
 import { Cylinder, Package, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +55,7 @@ export function MaterialsV2() {
   );
 
   const [search, setSearch] = useState("");
+  const stockFilter = searchParams.get("stock") === "critical";
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -76,16 +79,24 @@ export function MaterialsV2() {
   const [adjustSaving, setAdjustSaving] = useState(false);
 
   const filtered = useMemo(() => {
+    let list = materials;
+    if (stockFilter) {
+      list = list.filter((m) =>
+        getMaterialColors(m).some((c) =>
+          isLowStock(c.stock_grams, lowStockThreshold(c.low_stock_grams))
+        )
+      );
+    }
     const q = search.trim().toLowerCase();
-    if (!q) return materials;
-    return materials.filter((m) => {
+    if (!q) return list;
+    return list.filter((m) => {
       if (m.name.toLowerCase().includes(q)) return true;
       if (m.brand?.toLowerCase().includes(q)) return true;
       return getMaterialColors(m).some((c) =>
         c.color_name.toLowerCase().includes(q)
       );
     });
-  }, [materials, search]);
+  }, [materials, search, stockFilter]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -129,6 +140,8 @@ export function MaterialsV2() {
             color_name: c.color_name,
             hex_code: c.hex_code ?? "",
             stock_grams: String(c.stock_grams),
+            low_stock_grams:
+              c.low_stock_grams != null ? String(c.low_stock_grams) : "",
           }))
         : [emptyColorRow()]
     );
@@ -268,13 +281,27 @@ export function MaterialsV2() {
       </header>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Malzeme veya renk ara…"
-          className="max-w-sm"
-          aria-label="Malzeme ara"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Malzeme veya renk ara…"
+            className="max-w-sm"
+            aria-label="Malzeme ara"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant={stockFilter ? "primary" : "secondary"}
+            className={cn(!stockFilter && "border-dashed")}
+            onClick={() =>
+              patchUrl({ stock: stockFilter ? null : "critical" })
+            }
+            aria-pressed={stockFilter}
+          >
+            Kritik stok
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-2">
           {PRESET_MATERIALS.map((p) => (
             <Button
