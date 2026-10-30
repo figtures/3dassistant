@@ -73,7 +73,7 @@ export function AppShellV2({
 
       <aside
         className={cn(
-          "hidden h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[240ms] ease-out lg:flex",
+          "hidden h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[240ms] ease-out print:hidden lg:flex",
           collapsed ? "w-[60px]" : "w-[260px]"
         )}
         aria-label="Kenar çubuğu"

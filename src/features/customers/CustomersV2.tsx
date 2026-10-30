@@ -32,13 +32,18 @@ import {
 import { useTenantId } from "@/components/workspace/workspace-provider";
 import { usePermission } from "@/components/workspace/can";
 import { CustomersTable } from "@/features/customers/customers-table";
+import { TableExportMenu } from "@/components/ds/data-table/table-export-menu";
+import {
+  buildCustomersExportColumns,
+  type CustomerExportRow,
+} from "@/lib/export/tables/customers";
+import { fetchAllCustomersForExport } from "@/lib/export/server/fetch-rows";
 import {
   buildCustomerStatsMap,
   matchesCustomerSearch,
 } from "@/features/customers/customer-utils";
 import {
   Download,
-  FileSpreadsheet,
   MoreHorizontal,
   Plus,
   Search,
@@ -145,6 +150,35 @@ function CustomersV2Content() {
     [customers, search]
   );
 
+  const customerExportColumns = useMemo(
+    () => buildCustomersExportColumns({ showFinance }),
+    [showFinance]
+  );
+
+  const exportServerQuery = useMemo(() => {
+    const q = search.trim();
+    return q ? `q=${encodeURIComponent(q)}` : "";
+  }, [search]);
+
+  const fetchCustomersForExport = useMemo(
+    () => async () => {
+      const supabase = createClient();
+      const rows = await fetchAllCustomersForExport(supabase, tenantId, search.trim());
+      return rows.map(
+        (c): CustomerExportRow => ({
+          ...c,
+          stats: statsMap.get(c.id) ?? {
+            orderCount: 0,
+            totalRevenue: 0,
+            pendingCollection: 0,
+            lastOrderDate: null,
+          },
+        })
+      );
+    },
+    [tenantId, search, statsMap]
+  );
+
   function openCreate() {
     setEditingId(null);
     setForm(emptyForm());
@@ -234,12 +268,6 @@ function CustomersV2Content() {
     setExcelMenuOpen(false);
     const { downloadCustomerTemplate } = await import("@/lib/excel");
     downloadCustomerTemplate();
-  }
-
-  async function handleExport() {
-    setExcelMenuOpen(false);
-    const { exportCustomersToExcel } = await import("@/lib/excel");
-    exportCustomersToExcel(customers);
   }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -352,6 +380,17 @@ function CustomersV2Content() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
+          {canExport ? (
+            <TableExportMenu
+              tableId="customers"
+              filenameBase="musteriler"
+              sheetName="Müşteriler"
+              totalCount={filtered.length}
+              serverQuery={exportServerQuery}
+              columns={customerExportColumns}
+              fetchRows={fetchCustomersForExport}
+            />
+          ) : null}
           {canExport ? (
             <Button
               type="button"
@@ -474,12 +513,6 @@ function CustomersV2Content() {
               <Upload className="size-4" aria-hidden />
               İçe aktar
             </Button>
-            {customers.length > 0 ? (
-              <Button type="button" variant="secondary" onClick={() => void handleExport()}>
-                <FileSpreadsheet className="size-4" aria-hidden />
-                Dışa aktar
-              </Button>
-            ) : null}
           </div>
         </DialogContent>
       </Dialog>

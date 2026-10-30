@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useCustomers, useCustomerJobs, formatDateTR } from "@/hooks/use-data";
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ds";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
 import { formatCurrency, formatDuration, formatGrams } from "@/lib/utils";
-import { formatCurrency as formatCurrencyV2 } from "@/lib/format";
+import { formatCurrency as formatCurrencyV2, formatDate } from "@/lib/format";
 import { buildCustomerStatsMap } from "@/features/customers/customer-utils";
 import { usePermission } from "@/components/workspace/can";
 import {
@@ -22,6 +23,7 @@ import {
   Briefcase,
   ChevronDown,
   ChevronRight,
+  Printer,
 } from "lucide-react";
 import type { JobStatus, PaymentStatus } from "@/types/database";
 
@@ -51,6 +53,7 @@ export type CustomerDetailScreenProps = {
 
 export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) {
   const showFinance = usePermission("finance.view");
+  const canExport = usePermission("export.data");
   const { data: customers = [], isLoading: customersLoading } = useCustomers();
   const { data: jobs = [], isLoading: jobsLoading } = useCustomerJobs(customerId);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -129,15 +132,30 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
 
   return (
     <div className="space-y-6 pb-8">
-      <Link
-        href="/customers"
-        className="-ml-2 inline-flex h-8 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        Müşterilere dön
-      </Link>
+      <div className="pf-print-only pf-print-header">
+        <h1>Müşteri ekstresi</h1>
+        <p>
+          {customer.name} · {formatDate(new Date().toISOString())}
+        </p>
+      </div>
 
-      <header className="space-y-1">
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
+        <Link
+          href="/customers"
+          className="-ml-2 inline-flex h-8 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Müşterilere dön
+        </Link>
+        {canExport || showFinance ? (
+          <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
+            <Printer className="size-4" aria-hidden />
+            Ekstre yazdır
+          </Button>
+        ) : null}
+      </div>
+
+      <header className="space-y-1 print:hidden">
         <HelpTitleRow>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{customer.name}</h1>
         </HelpTitleRow>
@@ -220,7 +238,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
         ) : null}
       </div>
 
-      <section aria-labelledby="customer-jobs-heading">
+      <section aria-labelledby="customer-jobs-heading" className="print:hidden">
         <h2
           id="customer-jobs-heading"
           className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground"
@@ -334,6 +352,45 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           </div>
         )}
       </section>
+
+      {jobs.length > 0 ? (
+        <div className="pf-print-only">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-gray-300 text-left">
+                <th className="py-2 pr-2">Tarih</th>
+                <th className="py-2 pr-2">Sipariş</th>
+                <th className="py-2 pr-2">Durum</th>
+                {showFinance ? (
+                  <>
+                    <th className="py-2 pr-2">Tutar</th>
+                    <th className="py-2 pr-2">Ödeme</th>
+                  </>
+                ) : null}
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map((job) => (
+                <tr key={job.id} className="border-b border-gray-200">
+                  <td className="py-2 pr-2 tabular-nums">{formatDateTR(job.job_date)}</td>
+                  <td className="py-2 pr-2">{job.title ?? "—"}</td>
+                  <td className="py-2 pr-2">{STATUS_LABELS[job.status]}</td>
+                  {showFinance ? (
+                    <>
+                      <td className="py-2 pr-2 tabular-nums">
+                        {formatCurrency(job.revenue_amount)}
+                      </td>
+                      <td className="py-2 pr-2">
+                        {PAYMENT_LABELS[job.payment_status ?? "unpaid"]}
+                      </td>
+                    </>
+                  ) : null}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -30,7 +30,7 @@ import {
 } from "@/lib/format";
 import { useBreadcrumbLabel } from "@/hooks/use-breadcrumb-label";
 import type { Job, JobStatus } from "@/types/database";
-import { ArrowLeft, CalendarClock, FileText, Pencil } from "lucide-react";
+import { ArrowLeft, CalendarClock, FileText, Pencil, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { cn, formatCurrency, formatDuration, formatGrams } from "@/lib/utils";
 
@@ -172,6 +172,13 @@ export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
 
   return (
     <div className="space-y-6 pb-8">
+      <div className="pf-print-only pf-print-header">
+        <h1>Sipariş özeti</h1>
+        <p>
+          {title} · {formatDateShort(job.job_date)}
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <Link
           href="/orders"
@@ -188,6 +195,15 @@ export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
         >
           <Pencil className="size-4" aria-hidden />
           Düzenle
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => window.print()}
+        >
+          <Printer className="size-4" aria-hidden />
+          Yazdır
         </Button>
       </div>
 
@@ -399,7 +415,7 @@ export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
           ) : null}
         </div>
 
-        <Card className="print:break-inside-avoid">
+        <Card className="pf-print-timeline print:break-inside-avoid">
           <CardHeader>
             <CardTitle className="text-base">Zaman çizelgesi</CardTitle>
           </CardHeader>

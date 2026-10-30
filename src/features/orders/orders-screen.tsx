@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -37,7 +37,14 @@ import { ClipboardList, LayoutGrid, Plus, Search, Table2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SavedViewsToolbar } from "@/components/ds/data-table/saved-views";
+import { TableExportMenu } from "@/components/ds/data-table/table-export-menu";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
+import { useTenantId } from "@/components/workspace/workspace-provider";
+import { fetchAllOrdersForExport } from "@/lib/export/server/fetch-rows";
+import {
+  buildOrdersExportColumns,
+  ORDERS_EXPORT_COLUMN_IDS,
+} from "@/lib/export/tables/orders";
 
 const selectClassName =
   "flex h-[var(--density-control-h)] rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
@@ -61,6 +68,8 @@ function OrdersV2Content() {
   const confirmAction = useConfirm();
   const canEditOrders = usePermission("orders.edit");
   const showFinance = usePermission("finance.view");
+  const canExport = usePermission("export.data");
+  const tenantId = useTenantId();
 
   const { patch: patchUrl, snapshot, applySnapshot } = useTableUrlState({
     pathname: "/orders",
@@ -224,6 +233,57 @@ function OrdersV2Content() {
 
   const bulkBar = selectedIds.size > 0;
 
+  const exportServerQuery = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("order");
+    if (view === "table") params.delete("view");
+    return params.toString();
+  }, [searchParams, view]);
+
+  const ordersExportColumns = useMemo(
+    () => buildOrdersExportColumns({ showFinance }),
+    [showFinance]
+  );
+
+  const ordersVisibleColumnIds = useMemo(
+    () =>
+      ORDERS_EXPORT_COLUMN_IDS.filter((id) => {
+        if (!showFinance && (id === "amount" || id === "payment" || id === "remaining")) {
+          return false;
+        }
+        return true;
+      }),
+    [showFinance]
+  );
+
+  const fetchOrdersForExport = useMemo(
+    () => async () => {
+      const supabase = createClient();
+      const { rows } = await fetchAllOrdersForExport(supabase, tenantId, {
+        tab,
+        q,
+        status: statusFilter.length ? statusFilter : undefined,
+        payment: paymentFilter.length ? paymentFilter : undefined,
+        machineId: machineId || undefined,
+        customerId: customerId || undefined,
+        from: from || undefined,
+        to: to || undefined,
+      });
+      return rows;
+    },
+    [
+      tenantId,
+      tab,
+      q,
+      statusFilter,
+      paymentFilter,
+      machineId,
+      customerId,
+      from,
+      to,
+    ]
+  );
+
   return (
     <div className="space-y-6 pb-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -377,6 +437,18 @@ function OrdersV2Content() {
           className="w-full sm:w-auto"
           aria-label="Teslim bitiş"
         />
+        {tableEnabled && canExport ? (
+          <TableExportMenu
+            tableId="orders"
+            filenameBase="siparisler"
+            sheetName="Siparişler"
+            totalCount={total}
+            serverQuery={exportServerQuery}
+            columns={ordersExportColumns}
+            visibleColumnIds={ordersVisibleColumnIds}
+            fetchRows={fetchOrdersForExport}
+          />
+        ) : null}
       </div>
 
       {view === "board" ? (
