@@ -12,7 +12,7 @@ import { Logo } from "@/components/ui/logo";
 import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 
-export default function LoginPage() {
+export default function LoginLegacyPage() {
   return (
     <Suspense>
       <LoginForm />
@@ -79,10 +79,19 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Şifre</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="password">Şifre</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-medium text-sky-400 hover:text-sky-300"
+                  >
+                    Şifremi unuttum
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -90,6 +99,7 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                 />
               </div>
               <Button type="submit" className="mt-2 w-full" size="lg" disabled={loading}>

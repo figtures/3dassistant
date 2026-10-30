@@ -35,18 +35,27 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/register") ||
-    request.nextUrl.pathname.startsWith("/auth/callback");
+  const pathname = request.nextUrl.pathname;
 
-  if (!user && !isAuthPage && request.nextUrl.pathname !== "/") {
+  const isSessionEntryPage =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/auth/callback");
+
+  const isPublicPage =
+    isSessionEntryPage ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/verify-email") ||
+    pathname.startsWith("/legal");
+
+  if (!user && !isPublicPage && pathname !== "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (user && isSessionEntryPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

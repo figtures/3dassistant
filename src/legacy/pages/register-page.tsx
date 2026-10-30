@@ -13,7 +13,7 @@ import { Logo } from "@/components/ui/logo";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function RegisterPage() {
+export default function RegisterLegacyPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -72,6 +72,7 @@ export default function RegisterPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  autoComplete="name"
                 />
               </div>
               <div className="space-y-2">
@@ -81,6 +82,7 @@ export default function RegisterPage() {
                   placeholder="3D Print Studio"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
+                  autoComplete="organization"
                 />
               </div>
               <div className="space-y-2">
@@ -92,6 +94,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="space-y-2">
@@ -104,6 +107,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   minLength={6}
                   required
+                  autoComplete="new-password"
                 />
               </div>
               <Button type="submit" className="mt-2 w-full" size="lg" disabled={loading}>
