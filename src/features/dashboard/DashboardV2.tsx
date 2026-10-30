@@ -1,6 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { FleetOverviewV2 } from "@/features/dashboard/fleet-overview-v2";
+import { WelcomeToast } from "@/features/dashboard/welcome-toast";
 import { KpiRow, KpiRowSkeleton } from "@/features/dashboard/kpi-row";
 import { QuickLinks } from "@/features/dashboard/quick-links";
 import { RecentActivity } from "@/features/dashboard/recent-activity";
@@ -25,6 +27,9 @@ export function DashboardV2({ displayName }: DashboardV2Props) {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 pb-8">
+      <Suspense fallback={null}>
+        <WelcomeToast />
+      </Suspense>
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           {greeting}, {displayName}
