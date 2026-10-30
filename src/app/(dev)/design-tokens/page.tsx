@@ -83,7 +83,7 @@ export default function DesignTokensPage() {
             Forge tasarım token&apos;ları
           </h1>
           <p className="text-sm text-muted-foreground">
-            Geliştirme referansı — 3D Assistant v2. Açık tema:{" "}
+            Geliştirme referansı — 3D Asisstant v2. Açık tema:{" "}
             <code className="rounded bg-surface-inset px-1.5 py-0.5 font-mono text-xs">
               document.documentElement.dataset.theme = &quot;light&quot;
             </code>

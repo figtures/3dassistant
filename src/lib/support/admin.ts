@@ -15,14 +15,14 @@ export function isSupportAdminEmail(email: string | null | undefined): boolean {
 }
 
 export function supportEmailTo(): string {
-  return process.env.SUPPORT_EMAIL_TO?.trim() || "info@3dyanimda.com";
+  return process.env.SUPPORT_EMAIL_TO?.trim() || "destek@3dasisstant.com";
 }
 
 export function supportEmailFrom(): string {
   return (
     process.env.SUPPORT_EMAIL_FROM?.trim() ||
     process.env.EMAIL_FROM?.trim() ||
-    "3D Assistant <onboarding@resend.dev>"
+    "3D Asisstant <onboarding@resend.dev>"
   );
 }
 

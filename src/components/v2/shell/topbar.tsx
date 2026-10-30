@@ -55,7 +55,7 @@ export function TopBar({
           href="/dashboard"
           className="text-sm font-semibold tracking-tight text-foreground lg:hidden"
         >
-          3D Assistant
+          3D Asisstant
         </Link>
         <nav
           aria-label="Breadcrumb"

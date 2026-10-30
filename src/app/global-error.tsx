@@ -16,7 +16,7 @@ export default function GlobalError({
   }, [error]);
 
   const mailto = buildMailtoFallback({
-    subject: "3D Assistant kritik hata",
+    subject: "3D Asisstant kritik hata",
     description: `Hata: ${error.message}${error.digest ? `\nDigest: ${error.digest}` : ""}`,
     diagnostics: snapshotClientDiagnostics(),
   });

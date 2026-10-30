@@ -7,7 +7,7 @@ export const metadata = {
 export default function OnboardingPage() {
   return (
     <div className="space-y-2">
-      <h1 className="sr-only">3D Assistant kurulum sihirbazı</h1>
+      <h1 className="sr-only">3D Asisstant kurulum sihirbazı</h1>
       <OnboardingWizard />
     </div>
   );

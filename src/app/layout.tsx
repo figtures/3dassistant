@@ -20,13 +20,13 @@ const geistMono = Geist_Mono({
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://3dassistant.com";
+  "https://3dasisstant.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "3D Assistant — 3D atölye ERP",
-    template: "%s · 3D Assistant",
+    default: "3D Asisstant — 3D atölye ERP",
+    template: "%s · 3D Asisstant",
   },
   description: "3D baskı atölyeleri için üretim, planlama ve filo yönetimi",
 };

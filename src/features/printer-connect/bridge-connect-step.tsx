@@ -98,7 +98,7 @@ export function BridgeConnectStep({ onLinked, onBack }: BridgeConnectStepProps) 
   const siteUrl =
     typeof window !== "undefined"
       ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL ?? "https://3dassistant.com";
+      : process.env.NEXT_PUBLIC_SITE_URL ?? "https://3dasisstant.com";
 
   useEffect(() => {
     if (!cloudAllowed) return;
@@ -232,7 +232,7 @@ export function BridgeConnectStep({ onLinked, onBack }: BridgeConnectStepProps) 
   return (
     <div className="space-y-4 text-sm">
       <p className="text-muted-foreground">
-        <strong className="text-foreground">3D Assistant Bridge</strong> atölye bilgisayarınızda arka
+        <strong className="text-foreground">3D Asisstant Bridge</strong> atölye bilgisayarınızda arka
         planda çalışır; yazıcılar yerel ağda otomatik bulunur.
       </p>
 

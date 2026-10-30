@@ -63,7 +63,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
   const siteUrl =
     typeof window !== "undefined"
       ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL ?? "https://3dassistant.com";
+      : process.env.NEXT_PUBLIC_SITE_URL ?? "https://3dasisstant.com";
 
   useEffect(() => {
     if (!open || !cloudAllowed) return;
@@ -171,7 +171,7 @@ export function WorkshopBridgeModal({ open, onOpenChange }: Props) {
           ) : (
             <>
               <p className="text-zinc-400">
-                <strong className="text-zinc-200">3D Assistant Bridge</strong> atölye PC’de arka planda
+                <strong className="text-zinc-200">3D Asisstant Bridge</strong> atölye PC’de arka planda
                 çalışır. Chrome, Firefox veya Edge için ayrı kurulum yok — ERP’ye hangi tarayıcıdan
                 girerseniz girin aynı makine kartı güncellenir.
               </p>

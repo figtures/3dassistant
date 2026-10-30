@@ -64,7 +64,7 @@ Son 24 saat içinde yüklenen paket, paneldeki sorun bildirimine otomatik bağla
 | Değişken | Açıklama |
 |----------|-----------|
 | `RESEND_API_KEY` | E-posta gönderimi (yoksa DB kaydı + uyarı logu) |
-| `SUPPORT_EMAIL_TO` | Destek kutusu (varsayılan `info@3dyanimda.com`) |
+| `SUPPORT_EMAIL_TO` | Destek kutusu (varsayılan `destek@3dasisstant.com`) |
 | `SUPPORT_EMAIL_FROM` / `EMAIL_FROM` | Gönderen adresi |
 | `SUPPORT_ADMIN_EMAILS` | Virgülle ayrılmış iç panel e-postaları |
 | `SUPABASE_SERVICE_ROLE_KEY` | Köprü paketi, admin listesi, imzalı ek URL’leri, sunucu hata kaydı |

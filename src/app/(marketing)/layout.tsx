@@ -6,7 +6,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
           <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
-            3D Assistant
+            3D Asisstant
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/login" className="text-muted-foreground hover:text-foreground">

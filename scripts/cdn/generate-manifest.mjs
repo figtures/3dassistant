@@ -71,7 +71,7 @@ export async function generateManifest(opts = {}) {
 
   return {
     product: "printflow-bridge",
-    brand: "3dassistant",
+    brand: "3dasisstant",
     version,
     updatedAt: new Date().toISOString(),
     artifacts,

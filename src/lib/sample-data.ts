@@ -3,7 +3,7 @@ import { getEntitlements, getMachineUsage } from "@/lib/billing/entitlements";
 import type { JobStatus } from "@/types/database";
 
 /** Örnek kayıtları silmek / tespit etmek için ortak etiket */
-export const SAMPLE_DATA_MARKER = "3D Assistant örnek veri";
+export const SAMPLE_DATA_MARKER = "3D Asisstant örnek veri";
 
 export function tagSampleField(detail: string): string {
   return `${SAMPLE_DATA_MARKER} · ${detail}`;

@@ -30,7 +30,7 @@ export function Logo({
       {showText && (
         <div className="flex flex-col leading-none">
           <span className={cn("font-semibold tracking-tight text-zinc-100", s.text)}>
-            3D Assistant
+            3D Asisstant
           </span>
           {size !== "sm" && (
             <span className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-zinc-500">

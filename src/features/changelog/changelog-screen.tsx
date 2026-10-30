@@ -23,7 +23,7 @@ export function ChangelogScreen() {
           </h1>
         </HelpTitleRow>
         <p className="text-sm text-muted-foreground">
-          3D Assistant güncellemeleri — en yeni sürümler üstte. Yeni bir sürüm yayınlandığında
+          3D Asisstant güncellemeleri — en yeni sürümler üstte. Yeni bir sürüm yayınlandığında
           kenar çubuğunda bildirim noktası görünür; bu sayfayı açınca okundu sayılır.
         </p>
       </header>

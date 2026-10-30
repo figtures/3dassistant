@@ -88,7 +88,7 @@ Partner client nasıl alınır: [partner-printer-oauth.md](./partner-printer-oau
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=          # webhook + cron
-NEXT_PUBLIC_SITE_URL=https://...
+NEXT_PUBLIC_SITE_URL=https://3dasisstant.com
 CRON_SECRET=                        # Vercel Cron Authorization: Bearer
 
 # Paddle

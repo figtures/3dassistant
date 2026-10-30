@@ -9,7 +9,7 @@
  *   BRIDGE_S3_BUCKET=cdn-3dassistant BRIDGE_S3_PREFIX=bridge/releases node scripts/cdn/publish-bridge.mjs
  *
  * Yükleme sonrası HEAD doğrulama (public URL):
- *   BRIDGE_CDN_PUBLIC_BASE_URL=https://cdn.3dassistant.com/bridge/releases node scripts/cdn/publish-bridge.mjs
+ *   BRIDGE_CDN_PUBLIC_BASE_URL=https://cdn.3dasisstant.com/bridge/releases node scripts/cdn/publish-bridge.mjs
  *
  * Env: NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION (ör. 0.1.0)
  */

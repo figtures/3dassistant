@@ -91,7 +91,7 @@ export function AppShellV2({
               href="/dashboard"
               className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground"
             >
-              3D Assistant
+              3D Asisstant
             </Link>
           )}
           <SidebarCollapseButton

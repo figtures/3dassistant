@@ -1,12 +1,12 @@
 # Atölye köprüsü CDN yayını (imzalı installer)
 
-Ürün markası **3dassistant**; köprü binary ve dosya adları şimdilik `printflow-bridge` kalır. Panel indirme linkleri `src/lib/bridge/downloads.ts` ve `GET /api/bridge/downloads` üzerinden üretilir.
+Ürün markası **3dasisstant**; köprü binary ve dosya adları şimdilik `printflow-bridge` kalır. Panel indirme linkleri `src/lib/bridge/downloads.ts` ve `GET /api/bridge/downloads` üzerinden üretilir.
 
 ## URL yapısı
 
 | Ortam değişkeni | Açıklama |
 |---|---|
-| `NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL` | CDN kökü (sonunda `/` olmasa da olur). Varsayılan: `https://cdn.3dassistant.com/bridge/releases` |
+| `NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL` | CDN kökü (sonunda `/` olmasa da olur). Varsayılan: `https://cdn.3dasisstant.com/bridge/releases` |
 | `NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION` | Yayın sürümü, örn. `0.1.0` |
 
 Her platform dosyası:
@@ -18,7 +18,7 @@ Her platform dosyası:
 Örnek (Apple Silicon):
 
 ```text
-https://cdn.3dassistant.com/bridge/releases/v0.1.0/printflow-bridge_0.1.0_darwin_arm64.pkg
+https://cdn.3dasisstant.com/bridge/releases/v0.1.0/printflow-bridge_0.1.0_darwin_arm64.pkg
 ```
 
 Ek dosyalar (yayın betiği yazar):
@@ -166,7 +166,7 @@ BRIDGE_S3_PREFIX=bridge/releases \
 npm run cdn:bridge:publish
 
 # Yükleme sonrası public HEAD doğrulama
-BRIDGE_CDN_PUBLIC_BASE_URL=https://cdn.3dassistant.com/bridge/releases \
+BRIDGE_CDN_PUBLIC_BASE_URL=https://cdn.3dasisstant.com/bridge/releases \
 NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION=0.1.0 \
 npm run cdn:bridge:publish
 ```
@@ -180,7 +180,7 @@ npm run cdn:bridge:publish
 Production ve Preview ortamlarında:
 
 ```env
-NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL=https://cdn.3dassistant.com/bridge/releases
+NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL=https://cdn.3dasisstant.com/bridge/releases
 NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION=0.1.0
 ```
 
@@ -190,7 +190,7 @@ CDN’de dosya yoksa kullanıcı 404 görür; sürümü Vercel’de CDN’deki `
 
 ---
 
-## 7. DNS: `cdn.3dassistant.com`
+## 7. DNS: `cdn.3dasisstant.com`
 
 1. DNS sağlayıcıda **CNAME** veya **A** kaydı: `cdn` → barındırma (S3/CloudFront, Nginx VPS, R2 + custom domain, vb.).
 2. TLS sertifikası (Let’s Encrypt veya CDN sağlayıcı otomatik).
@@ -198,15 +198,15 @@ CDN’de dosya yoksa kullanıcı 404 görür; sürümü Vercel’de CDN’deki `
 
 ### Geliştirme Mac’te DNS hatası (sık görülen)
 
-Belirti: `nslookup cdn.3dassistant.com` başarısız, `Could not resolve host`, veya yalnızca şirket VPN kapalıyken çalışmıyor.
+Belirti: `nslookup cdn.3dasisstant.com` başarısız, `Could not resolve host`, veya yalnızca şirket VPN kapalıyken çalışmıyor.
 
 Kontrol listesi:
 
 ```bash
 # Sistem çözümleyici
 scutil --dns | head -40
-dig cdn.3dassistant.com +short
-dig @1.1.1.1 cdn.3dassistant.com +short
+dig cdn.3dasisstant.com +short
+dig @1.1.1.1 cdn.3dasisstant.com +short
 
 # macOS önbellek (dikkatli kullanın)
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
@@ -266,4 +266,4 @@ cd ../..
 npm run cdn:bridge:publish
 ```
 
-S3 kullanıyorsanız `BRIDGE_S3_BUCKET` ve `BRIDGE_S3_PREFIX` ekleyin; public doğrulama için `BRIDGE_CDN_PUBLIC_BASE_URL=https://cdn.3dassistant.com/bridge/releases`.
+S3 kullanıyorsanız `BRIDGE_S3_BUCKET` ve `BRIDGE_S3_PREFIX` ekleyin; public doğrulama için `BRIDGE_CDN_PUBLIC_BASE_URL=https://cdn.3dasisstant.com/bridge/releases`.

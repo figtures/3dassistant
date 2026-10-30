@@ -1,6 +1,6 @@
 # Production cron ve e-posta
 
-PrintFlow, Vercel Cron ile saatlik geciken iş hatırlatmaları gönderir (`vercel.json`: `0 * * * *` → `/api/cron/overdue-reminders`).
+3D Asisstant, Vercel Cron ile saatlik geciken iş hatırlatmaları gönderir (`vercel.json`: `0 * * * *` → `/api/cron/overdue-reminders`).
 
 ## Vercel ortam değişkenleri
 
@@ -11,18 +11,20 @@ PrintFlow, Vercel Cron ile saatlik geciken iş hatırlatmaları gönderir (`verc
 | `SUPABASE_SERVICE_ROLE_KEY` | Cron sorguları için service role (RLS bypass) |
 | `CRON_SECRET` | Cron isteğini doğrulayan Bearer token |
 | `RESEND_API_KEY` | Resend API anahtarı |
-| `EMAIL_FROM` | Gönderen adresi (ör. `PrintFlow <noreply@alanadiniz.com>`) |
-| `NEXT_PUBLIC_SITE_URL` | Canlı site URL (e-posta linkleri) |
+| `EMAIL_FROM` | Gönderen adresi (ör. `3D Asisstant <noreply@3dasisstant.com>`) |
+| `NEXT_PUBLIC_SITE_URL` | Canlı site URL (ör. `https://3dasisstant.com`; preview’da Vercel host) |
 
 `RESEND_API_KEY` yoksa cron çalışır ancak e-postalar gönderilmez; logda `E-posta atlandı (Resend yok)` görünür ve `last_overdue_reminder_at` güncellenmez.
 
 ## Manuel test (curl)
 
-Production veya `npm run dev` ile:
+Production (`NEXT_PUBLIC_SITE_URL`) veya `npm run dev` ile:
 
 ```bash
+# Canlı: https://3dasisstant.com/api/cron/overdue-reminders
+# Preview örneği: https://your-app.vercel.app/api/cron/overdue-reminders
 curl -sS -H "Authorization: Bearer YOUR_CRON_SECRET" \
-  "https://your-app.vercel.app/api/cron/overdue-reminders"
+  "https://3dasisstant.com/api/cron/overdue-reminders"
 ```
 
 Yerel:

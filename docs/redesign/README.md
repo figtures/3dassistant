@@ -1,7 +1,7 @@
-# 3dassistant Yeniden Tasarım Planı
+# 3dasisstant Yeniden Tasarım Planı
 
 > Durum: **Planlama tamamlandı — uygulama başlamadı.** (25 Ekim 2026)
-> Bu klasör, **3dassistant** (3D atölye ERP; eski çalışma adı PrintFlow) ürününün uçtan uca UI/UX yeniden tasarımını ve staging → production yayınını tanımlar. Uygulama, `06-backlog.md`'deki biletlerin `07-implementer-prompt.md` şablonuyla tek tek yürütülmesiyle yapılır.
+> Bu klasör, **3dasisstant** (3D atölye ERP; eski çalışma adı PrintFlow) ürününün uçtan uca UI/UX yeniden tasarımını ve staging → production yayınını tanımlar. Uygulama, `06-backlog.md`'deki biletlerin `07-implementer-prompt.md` şablonuyla tek tek yürütülmesiyle yapılır.
 
 ## Hedef
 

@@ -2,16 +2,18 @@
 
 ## Halka açık marka
 
-- **Ürün adı (UI):** **3D Assistant**
-- **Alan adı (kanonik):** [https://3dassistant.com](https://3dassistant.com) — `NEXT_PUBLIC_SITE_URL`
+Yazım **3dasisstant** / **3D Asisstant** bilinçli marka tercihidir (`assistant` değil).
+
+- **Ürün adı (UI):** **3D Asisstant**
+- **Alan adı (kanonik):** [https://3dasisstant.com](https://3dasisstant.com) — `NEXT_PUBLIC_SITE_URL`
 - **Alt başlık (Türkçe):** 3D atölye ERP / 3D baskı atölyeleri için üretim yönetimi.
 - **GitHub / paket:** `figtures/3dassistant`, npm paket adı `3dassistant`.
 
-Müşteri görünür metinlerde (giriş, pazarlama, e-posta konuları, metadata) PrintFlow yerine **3D Assistant** kullanılır.
+Müşteri görünür metinlerde (giriş, pazarlama, e-posta konuları, metadata) PrintFlow yerine **3D Asisstant** kullanılır.
 
 ## Köprü CDN
 
-- Varsayılan installer kökü: `https://cdn.3dassistant.com/bridge/releases`
+- Varsayılan installer kökü: `https://cdn.3dasisstant.com/bridge/releases`
 - Ortam: `NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL` (env adı dahili; değiştirilmedi)
 - Yol: `/v{VERSION}/printflow-bridge_{VERSION}_{platform}.{pkg|exe|deb}` (dosya adları dahili)
 
@@ -23,7 +25,7 @@ Aşağıdakiler bilinçli olarak eski adları taşıyabilir; yeniden adlandırma
 
 | Alan | Ad |
 |------|-----|
-| Masaüstü ajan | **3D Assistant Bridge** (UI); binary `printflow-bridge`, `apps/printflow-bridge`, `tools/printflow-bridge` |
+| Masaüstü ajan | **3D Asisstant Bridge** (UI); binary `printflow-bridge`, `apps/printflow-bridge`, `tools/printflow-bridge` |
 | API rotaları | `/api/bridge/*`, env `NEXT_PUBLIC_PRINTFLOW_BRIDGE_*` |
 | Go modülü | `github.com/printflow/printflow-bridge` |
 | Kurulum dizinleri (OS) | `PrintFlow Bridge` (Application Support / Program Files) — OS paketleri ayrı migrasyon |

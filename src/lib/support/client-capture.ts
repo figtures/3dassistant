@@ -141,7 +141,7 @@ export function buildMailtoFallback(opts: {
   description: string;
   diagnostics: ClientDiagnostics;
 }): string {
-  const supportTo = "info@3dyanimda.com";
+  const supportTo = "destek@3dasisstant.com";
   const subj = encodeURIComponent(
     opts.ticketId ? `[${opts.ticketId}] ${opts.subject}` : opts.subject
   );

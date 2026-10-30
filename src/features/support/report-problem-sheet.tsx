@@ -25,21 +25,23 @@ export type ReportProblemSheetProps = {
 export function ReportProblemSheet({ open, onOpenChange, form }: ReportProblemSheetProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="max-h-[min(92dvh,720px)] overflow-y-auto">
+      <DialogContent size="lg" className="max-sm:max-h-[95dvh]">
         <DialogHeader>
           <DialogTitle>Sorun bildir</DialogTitle>
           <DialogDescription>Teknik ekibe bildirim gönderin</DialogDescription>
         </DialogHeader>
-        <SupportReportFormFields
-          form={form}
-          variant="v2"
-          Input={Input}
-          Textarea={Textarea}
-          Label={({ children, className }) => (
-            <Label className={className}>{children}</Label>
-          )}
-        />
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+          <SupportReportFormFields
+            form={form}
+            variant="v2"
+            Input={Input}
+            Textarea={Textarea}
+            Label={({ children, className }) => (
+              <Label className={className}>{children}</Label>
+            )}
+          />
+        </div>
+        <DialogFooter className="gap-3 sm:flex-row sm:items-center sm:justify-between">
           <a
             href={form.mailto}
             className="inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"

@@ -14,7 +14,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Sistem durumu",
   description:
-    "3D Assistant uygulama, bulut senkronu, köprü ve e-posta servislerinin güncel durumu ve son 90 günlük çalışma süresi.",
+    "3D Asisstant uygulama, bulut senkronu, köprü ve e-posta servislerinin güncel durumu ve son 90 günlük çalışma süresi.",
 };
 
 export default async function StatusPage() {

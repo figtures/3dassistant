@@ -65,7 +65,7 @@ export function StatusPageScreen({ overall, services, incidents }: StatusPageScr
   return (
     <div className="mx-auto max-w-3xl space-y-10 pb-16">
       <header className="space-y-4 border-b border-border pb-8">
-        <p className="text-sm font-medium text-muted-foreground">3D Assistant</p>
+        <p className="text-sm font-medium text-muted-foreground">3D Asisstant</p>
         <div className="flex items-start gap-3">
           <Icon className={cn("mt-0.5 size-8 shrink-0", meta.className)} aria-hidden />
           <div className="space-y-1">

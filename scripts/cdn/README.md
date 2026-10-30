@@ -3,7 +3,7 @@
 Varsayılan public URL (`.env.local.example`):
 
 ```env
-NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL=https://cdn.3dassistant.com/bridge/releases
+NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL=https://cdn.3dasisstant.com/bridge/releases
 NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION=0.1.0
 ```
 

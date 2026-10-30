@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const email = process.env.E2E_EMAIL ?? "info@3dyanimda.com";
+const email = process.env.E2E_EMAIL ?? "admin@3dasisstant.com";
 const password = process.env.E2E_PASSWORD ?? "";
 
 async function login(page: import("@playwright/test").Page) {
@@ -22,7 +22,7 @@ test.describe("Makineler ve canlı takip", () => {
     });
     await expect(page.getByRole("button", { name: /Atölye köprüsü/i })).toBeEnabled();
     await page.getByRole("button", { name: /Atölye köprüsü/i }).click();
-    await expect(page.getByText(/3D Assistant Bridge|Eşleştirme kodu/i).first()).toBeVisible({
+    await expect(page.getByText(/3D Asisstant Bridge|Eşleştirme kodu/i).first()).toBeVisible({
       timeout: 10_000,
     });
   });

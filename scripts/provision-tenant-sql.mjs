@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Service role olmadan DATABASE_URL ile kullanıcı + abonelik (Supabase SQL).
- * node scripts/provision-tenant-sql.mjs info@3dyanimda.com 'Sifre' farm
+ * node scripts/provision-tenant-sql.mjs admin@3dasisstant.com 'Sifre' farm
  */
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";

@@ -61,7 +61,7 @@ export function formatOverdueEmail(job: OverdueJob): {
     `Durum: ${statusLabels[job.status] ?? job.status}`,
     ``,
     `Termin tarihini ileri alana veya durumu güncelleyene kadar saatlik hatırlatma alacaksınız.`,
-    `3D Assistant Takvim: ${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/calendar`,
+    `3D Asisstant Takvim: ${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/calendar`,
   ].join("\n");
 
   const html = `

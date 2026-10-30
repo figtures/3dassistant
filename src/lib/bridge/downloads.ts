@@ -17,7 +17,7 @@ export type BridgeDownload = {
 const VERSION = process.env.NEXT_PUBLIC_PRINTFLOW_BRIDGE_VERSION?.trim() || "0.1.0";
 const BASE =
   process.env.NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL?.trim() ||
-  "https://cdn.3dassistant.com/bridge/releases";
+  "https://cdn.3dasisstant.com/bridge/releases";
 
 export function bridgeInstallersPublished(): boolean {
   const b = process.env.NEXT_PUBLIC_PRINTFLOW_BRIDGE_BASE_URL?.trim();
