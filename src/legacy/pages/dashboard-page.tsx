@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useMemo } from "react";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { canViewFinance } from "@/lib/workspace/permissions";
@@ -19,7 +20,6 @@ import {
   mergeBusinessMetrics,
   getDefaultFilters,
 } from "@/hooks/use-data";
-import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { DeliveryAlerts } from "@/components/dashboard/delivery-alerts";
 import { MachineFleetPanel } from "@/components/dashboard/machine-fleet-panel";
 import { JobModal } from "@/components/planning/job-modal";
@@ -52,6 +52,14 @@ import {
   CircleDollarSign,
   Timer,
 } from "lucide-react";
+
+const DashboardCharts = dynamic(
+  () =>
+    import("@/components/dashboard/dashboard-charts").then((m) => ({
+      default: m.DashboardCharts,
+    })),
+  { ssr: false }
+);
 
 const STATUS_OPTIONS: { value: JobStatus; label: string }[] = [
   { value: "pending", label: "Bekliyor" },
