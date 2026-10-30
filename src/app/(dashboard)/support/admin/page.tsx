@@ -154,6 +154,12 @@ export default function SupportAdminPage() {
         >
           NPS / CSAT
         </Link>
+        <Link
+          href="/support/admin/health"
+          className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+        >
+          Müşteri sağlığı
+        </Link>
       </div>
 
       {tab === "errors" ? (
