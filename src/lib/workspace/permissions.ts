@@ -88,6 +88,7 @@ export const NAV_ITEM_ACTION: Record<string, WorkspaceAction> = {
   catalog: "materials.view",
   customers: "customers.view",
   billing: "billing.view",
+  changelog: "orders.view",
   support: "orders.view",
   settings: "settings.personal",
   "settings-profile": "settings.personal",

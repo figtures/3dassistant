@@ -19,12 +19,14 @@ export function TopBar({
   onOpenCommandPalette,
   shortcutsOpen,
   onShortcutsOpenChange,
+  changelogUnread,
 }: {
   user: ShellUser;
   onOpenMobileNav: () => void;
   onOpenCommandPalette: () => void;
   shortcutsOpen: boolean;
   onShortcutsOpenChange: (open: boolean) => void;
+  changelogUnread?: boolean;
 }) {
   const pathname = usePathname();
   const labelMap = useBreadcrumbLabelMap();
@@ -104,6 +106,7 @@ export function TopBar({
         <HelpMenu
           shortcutsOpen={shortcutsOpen}
           onShortcutsOpenChange={onShortcutsOpenChange}
+          changelogUnread={changelogUnread}
         />
         <NotificationBell />
         <UserMenu user={user} />

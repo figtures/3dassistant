@@ -20,9 +20,14 @@ const SHOW_STATUS_PAGE = false;
 type HelpMenuProps = {
   shortcutsOpen: boolean;
   onShortcutsOpenChange: (open: boolean) => void;
+  changelogUnread?: boolean;
 };
 
-export function HelpMenu({ shortcutsOpen, onShortcutsOpenChange }: HelpMenuProps) {
+export function HelpMenu({
+  shortcutsOpen,
+  onShortcutsOpenChange,
+  changelogUnread = false,
+}: HelpMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const { openReport } = useSupportReport();
@@ -98,15 +103,23 @@ export function HelpMenu({ shortcutsOpen, onShortcutsOpenChange }: HelpMenuProps
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           className={cn(
-            "inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors",
+            "relative inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors",
             "hover:bg-accent hover:text-foreground focus-visible:shadow-[var(--focus-ring)]",
             menuOpen && "bg-accent text-foreground"
           )}
           aria-expanded={menuOpen}
           aria-haspopup="menu"
-          aria-label="Yardım menüsü"
+          aria-label={
+            changelogUnread ? "Yardım menüsü, okunmamış yenilikler" : "Yardım menüsü"
+          }
         >
           <CircleHelp className="size-5" aria-hidden />
+          {changelogUnread ? (
+            <span
+              className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-2 ring-background"
+              aria-hidden
+            />
+          ) : null}
         </button>
         {menuOpen ? (
           <div
@@ -118,7 +131,10 @@ export function HelpMenu({ shortcutsOpen, onShortcutsOpenChange }: HelpMenuProps
               const content = (
                 <>
                   <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                  <span>{item.label}</span>
+                  <span className="min-w-0 flex-1">{item.label}</span>
+                  {item.id === "changelog" && changelogUnread ? (
+                    <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                  ) : null}
                 </>
               );
               if ("href" in item && item.href) {

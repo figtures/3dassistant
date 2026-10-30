@@ -19,6 +19,7 @@ import {
 } from "@/components/v2/command/command-palette-host";
 import { MobileNavSheet } from "@/components/v2/shell/mobile-nav";
 import { useNavBadges } from "@/components/v2/shell/use-nav-badges";
+import { useChangelogUnread } from "@/hooks/use-changelog-unread";
 import type { ShellUser } from "@/components/v2/shell/user-menu";
 import { SidebarPlanCard } from "@/components/v2/shell/sidebar-plan-card";
 import { WorkspaceSwitcher } from "@/components/v2/shell/workspace-switcher";
@@ -52,6 +53,7 @@ export function AppShellV2({
   const openShortcuts = useCallback(() => setShortcutsOpen(true), []);
   useShortcutRoot({ onShowShortcuts: openShortcuts });
   const badges = useNavBadges();
+  const changelogUnread = useChangelogUnread();
   const isAdmin = isSupportAdmin;
 
   const toggleCollapsed = useCallback(() => {
@@ -102,6 +104,7 @@ export function AppShellV2({
           collapsed={collapsed}
           badges={badges}
           isAdmin={isAdmin}
+          changelogUnread={changelogUnread}
         />
         <SidebarPlanCard collapsed={collapsed} />
       </aside>
@@ -110,6 +113,7 @@ export function AppShellV2({
         open={mobileOpen}
         onOpenChange={setMobileOpen}
         isAdmin={isAdmin}
+        changelogUnread={changelogUnread}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -119,6 +123,7 @@ export function AppShellV2({
           onOpenCommandPalette={() => setPaletteOpen(true)}
           shortcutsOpen={shortcutsOpen}
           onShortcutsOpenChange={setShortcutsOpen}
+          changelogUnread={changelogUnread}
         />
         <CommandPaletteHost
           open={paletteOpen}

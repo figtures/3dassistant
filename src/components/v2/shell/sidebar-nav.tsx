@@ -47,17 +47,20 @@ function SidebarLink({
   item,
   collapsed,
   badges,
+  changelogUnread,
   onNavigate,
 }: {
   item: NavItem;
   collapsed: boolean;
   badges: NavBadges;
+  changelogUnread?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const active =
     pathname === item.href || pathname.startsWith(`${item.href}/`);
   const Icon = item.icon;
+  const showChangelogDot = item.id === "changelog" && changelogUnread;
 
   return (
     <Link
@@ -65,6 +68,9 @@ function SidebarLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       title={collapsed ? item.label : undefined}
+      aria-label={
+        collapsed && showChangelogDot ? `${item.label}, okunmamış sürüm` : undefined
+      }
       className={cn(
         "group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium outline-none transition-colors",
         "focus-visible:shadow-[var(--focus-ring)]",
@@ -96,6 +102,18 @@ function SidebarLink({
           ) : null}
         </>
       )}
+      {showChangelogDot ? (
+        <span
+          className={cn(
+            "size-1.5 shrink-0 rounded-full bg-primary",
+            collapsed ? "absolute right-1.5 top-1.5" : "ml-auto"
+          )}
+          aria-hidden
+        />
+      ) : null}
+      {!collapsed && showChangelogDot ? (
+        <span className="sr-only">Okunmamış sürüm</span>
+      ) : null}
     </Link>
   );
 }
@@ -104,6 +122,7 @@ export function SidebarNavPanel({
   collapsed,
   badges,
   isAdmin,
+  changelogUnread,
   onNavigate,
   className,
 }: {
@@ -111,6 +130,7 @@ export function SidebarNavPanel({
   badges: NavBadges;
   /** Destek yönetimi (`SUPPORT_ADMIN_EMAILS`) */
   isAdmin?: boolean;
+  changelogUnread?: boolean;
   onNavigate?: () => void;
   className?: string;
 }) {
@@ -138,6 +158,7 @@ export function SidebarNavPanel({
                   item={item}
                   collapsed={collapsed}
                   badges={badges}
+                  changelogUnread={changelogUnread}
                   onNavigate={onNavigate}
                 />
               ))}

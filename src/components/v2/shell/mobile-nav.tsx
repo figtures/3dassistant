@@ -10,10 +10,12 @@ export function MobileNavSheet({
   open,
   onOpenChange,
   isAdmin,
+  changelogUnread,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isAdmin?: boolean;
+  changelogUnread?: boolean;
 }) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -72,6 +74,7 @@ export function MobileNavSheet({
           collapsed={false}
           badges={badges}
           isAdmin={isAdmin}
+          changelogUnread={changelogUnread}
           onNavigate={() => onOpenChange(false)}
           className="flex-1"
         />
