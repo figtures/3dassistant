@@ -531,3 +531,17 @@ export interface AuditEvent {
   created_at: string;
   actor?: Pick<Profile, "full_name" | "email"> | null;
 }
+
+/** DataTable URL anlık görüntüsü (kayıtlı görünüm). */
+export type TableUrlSnapshot = Record<string, string>;
+
+export interface SavedView {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  table_id: string;
+  name: string;
+  state: TableUrlSnapshot;
+  shared: boolean;
+  created_at: string;
+}

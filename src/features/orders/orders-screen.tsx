@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -36,6 +36,8 @@ import type { Job, JobStatus, PaymentStatus } from "@/types/database";
 import { ClipboardList, LayoutGrid, Plus, Search, Table2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { SavedViewsToolbar } from "@/components/ds/data-table/saved-views";
+import { useTableUrlState } from "@/hooks/use-table-url-state";
 
 const selectClassName =
   "flex h-[var(--density-control-h)] rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]";
@@ -54,12 +56,17 @@ const PAYMENT_STATUSES: PaymentStatus[] = [
 ];
 
 function OrdersV2Content() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const confirmAction = useConfirm();
   const canEditOrders = usePermission("orders.edit");
   const showFinance = usePermission("finance.view");
+
+  const { patch: patchUrl, snapshot, applySnapshot } = useTableUrlState({
+    pathname: "/orders",
+    excludeFromSnapshot: ["order"],
+    preserveOnApply: ["order"],
+  });
 
   const view =
     searchParams.get("view") === "board" ? ("board" as const) : ("table" as const);
@@ -116,19 +123,6 @@ function OrdersV2Content() {
   const rows = data?.rows ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  const patchUrl = useCallback(
-    (patch: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
-      for (const [key, value] of Object.entries(patch)) {
-        if (value == null || value === "") params.delete(key);
-        else params.set(key, value);
-      }
-      const qs = params.toString();
-      router.replace(qs ? `/orders?${qs}` : "/orders", { scroll: false });
-    },
-    [router, searchParams]
-  );
 
   useEffect(() => {
     setSearchInput(q);
@@ -314,6 +308,12 @@ function OrdersV2Content() {
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+        <SavedViewsToolbar
+          tableId="orders"
+          snapshot={snapshot}
+          onApply={applySnapshot}
+          className="w-full lg:w-auto"
+        />
         <div className="relative min-w-[200px] flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
