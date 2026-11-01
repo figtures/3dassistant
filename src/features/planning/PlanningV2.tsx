@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   getPlanningDates,
@@ -11,13 +11,15 @@ import {
 } from "@/hooks/use-data";
 import { OrderSheet } from "@/features/orders/order-sheet";
 import { DayListMobile } from "@/features/planning/day-list-mobile";
+import { GanttView } from "@/features/planning/gantt-view";
+import type { GanttZoom } from "@/features/planning/gantt-layout";
 import { PlanGrid } from "@/features/planning/plan-grid";
 import {
   PlanDndProvider,
   PlanMoveDialog,
   usePlanJobsById,
 } from "@/features/planning/plan-dnd";
-import { PlanToolbar } from "@/features/planning/plan-toolbar";
+import { PlanToolbar, type PlanViewMode } from "@/features/planning/plan-toolbar";
 import { updateOrderSchedule } from "@/features/orders/use-order-mutations";
 import { Button, EmptyState, Skeleton } from "@/components/ds";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
@@ -27,10 +29,20 @@ import { CalendarRange } from "lucide-react";
 import { toast } from "sonner";
 import { useTenantId } from "@/components/workspace/workspace-provider";
 
-export function PlanningV2() {
+function parseGanttZoom(value: string | null): GanttZoom {
+  if (value === "week" || value === "month") return value;
+  return "day";
+}
+
+function PlanningV2Content() {
   const queryClient = useQueryClient();
   const tenantId = useTenantId();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const viewMode: PlanViewMode =
+    searchParams.get("view") === "gantt" ? "gantt" : "grid";
+  const ganttZoom = parseGanttZoom(searchParams.get("zoom"));
+
   const [days, setDays] = useState(14);
   const [offset, setOffset] = useState(0);
   const [machineFilter, setMachineFilter] = useState("");
@@ -47,6 +59,20 @@ export function PlanningV2() {
   const [addMachineLoading, setAddMachineLoading] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [moveJob, setMoveJob] = useState<Job | null>(null);
+  const [ganttJobId, setGanttJobId] = useState<string | null>(null);
+
+  const patchUrl = useCallback(
+    (patch: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(patch)) {
+        if (value == null || value === "") params.delete(key);
+        else params.set(key, value);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/planning?${qs}` : "/planning", { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   const dates = useMemo(() => getPlanningDates(days, offset), [days, offset]);
   const dateFrom = dates[0];
@@ -77,6 +103,8 @@ export function PlanningV2() {
     }
     return map;
   }, [jobs]);
+
+  const ganttJob = ganttJobId ? jobsById.get(ganttJobId) : undefined;
 
   function handleGoToday() {
     setOffset(0);
@@ -115,6 +143,10 @@ export function PlanningV2() {
 
   function openCell(machine: Machine, date: string, job: Job | null) {
     setSelectedCell({ machine, date, job });
+  }
+
+  function openGanttJob(job: Job) {
+    setGanttJobId(job.id);
   }
 
   async function handleJobMove(
@@ -172,8 +204,9 @@ export function PlanningV2() {
           </h1>
         </HelpTitleRow>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Makine ve güne göre siparişleri planlayın. Hücreye tıklayarak sipariş
-          ekleyin veya düzenleyin.
+          {viewMode === "gantt"
+            ? "Makine şeritlerinde sipariş sürelerini Gantt olarak görün. Çubuğa tıklayarak düzenleyin."
+            : "Makine ve güne göre siparişleri planlayın. Hücreye tıklayarak sipariş ekleyin veya düzenleyin."}
         </p>
       </header>
 
@@ -192,6 +225,15 @@ export function PlanningV2() {
         onNewMachineNameChange={setNewMachineName}
         onAddMachine={handleAddMachine}
         addMachineLoading={addMachineLoading}
+        viewMode={viewMode}
+        onViewModeChange={(mode) =>
+          patchUrl({
+            view: mode === "gantt" ? "gantt" : null,
+            zoom: mode === "gantt" ? ganttZoom : null,
+          })
+        }
+        ganttZoom={ganttZoom}
+        onGanttZoomChange={(zoom) => patchUrl({ zoom })}
       />
 
       {isLoading ? (
@@ -220,6 +262,16 @@ export function PlanningV2() {
             </Button>
           }
         />
+      ) : viewMode === "gantt" ? (
+        <div className="hidden lg:block">
+          <GanttView
+            machines={visibleMachines}
+            jobs={jobs}
+            dates={dates}
+            zoom={ganttZoom}
+            onJobOpen={openGanttJob}
+          />
+        </div>
       ) : (
         <>
           <div className="hidden lg:block">
@@ -261,6 +313,13 @@ export function PlanningV2() {
         </>
       )}
 
+      {viewMode === "gantt" ? (
+        <p className="text-sm text-muted-foreground lg:hidden">
+          Gantt görünümü geniş ekranlarda kullanılabilir. Mobil için ızgara
+          görünümüne geçin veya cihazınızı yatay çevirin.
+        </p>
+      ) : null}
+
       <PlanMoveDialog
         open={moveJob != null}
         job={moveJob}
@@ -290,6 +349,32 @@ export function PlanningV2() {
           onSaved={() => queryClient.invalidateQueries({ queryKey: ["jobs"] })}
         />
       ) : null}
+
+      {ganttJob ? (
+        <OrderSheet
+          open
+          onOpenChange={(open) => {
+            if (!open) setGanttJobId(null);
+          }}
+          orderId={ganttJob.id}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ["jobs"] })}
+        />
+      ) : null}
     </div>
+  );
+}
+
+export function PlanningV2() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6 pb-8">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-52 w-full rounded-xl" />
+        </div>
+      }
+    >
+      <PlanningV2Content />
+    </Suspense>
   );
 }

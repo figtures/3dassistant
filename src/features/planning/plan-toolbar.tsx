@@ -2,9 +2,24 @@
 
 import { Button, Input } from "@/components/ds";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import type { GanttZoom } from "@/features/planning/gantt-layout";
+import {
+  ChartNoAxesGantt,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  Plus,
+} from "lucide-react";
 
 const DAY_OPTIONS = [7, 14, 30] as const;
+
+const GANTT_ZOOM_OPTIONS: { value: GanttZoom; label: string }[] = [
+  { value: "day", label: "Gün" },
+  { value: "week", label: "Hafta" },
+  { value: "month", label: "Ay" },
+];
+
+export type PlanViewMode = "grid" | "gantt";
 
 export type PlanToolbarProps = {
   days: number;
@@ -21,6 +36,10 @@ export type PlanToolbarProps = {
   onNewMachineNameChange: (name: string) => void;
   onAddMachine: () => void;
   addMachineLoading?: boolean;
+  viewMode?: PlanViewMode;
+  onViewModeChange?: (mode: PlanViewMode) => void;
+  ganttZoom?: GanttZoom;
+  onGanttZoomChange?: (zoom: GanttZoom) => void;
 };
 
 export function PlanToolbar({
@@ -38,10 +57,50 @@ export function PlanToolbar({
   onNewMachineNameChange,
   onAddMachine,
   addMachineLoading,
+  viewMode = "grid",
+  onViewModeChange,
+  ganttZoom = "day",
+  onGanttZoomChange,
 }: PlanToolbarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div className="flex flex-wrap items-center gap-2">
+        {onViewModeChange ? (
+          <div
+            className="flex rounded-lg border border-border bg-surface-inset p-1"
+            role="group"
+            aria-label="Plan görünümü"
+          >
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+                viewMode === "grid"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={viewMode === "grid"}
+              onClick={() => onViewModeChange("grid")}
+            >
+              <LayoutGrid className="size-4" aria-hidden />
+              Izgara
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+                viewMode === "gantt"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={viewMode === "gantt"}
+              onClick={() => onViewModeChange("gantt")}
+            >
+              <ChartNoAxesGantt className="size-4" aria-hidden />
+              Gantt
+            </button>
+          </div>
+        ) : null}
         <Button
           type="button"
           variant="secondary"
@@ -88,6 +147,28 @@ export function PlanToolbar({
             </option>
           ))}
         </select>
+        {viewMode === "gantt" && onGanttZoomChange ? (
+          <>
+            <label className="sr-only" htmlFor="plan-gantt-zoom">
+              Gantt yakınlaştırma
+            </label>
+            <select
+              id="plan-gantt-zoom"
+              value={ganttZoom}
+              onChange={(e) => onGanttZoomChange(e.target.value as GanttZoom)}
+              className={cn(
+                "h-[var(--density-control-h)] rounded-lg border border-input bg-surface-inset px-3 text-sm text-foreground",
+                "focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
+              )}
+            >
+              {GANTT_ZOOM_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
