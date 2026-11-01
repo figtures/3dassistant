@@ -2,15 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements, getMachineUsage } from "@/lib/billing/entitlements";
 import { isPaddleConfigured } from "@/lib/billing/paddle";
+import { getAuthUser } from "@/lib/supabase/get-auth-user";
 import { getActiveWorkspaceId } from "@/lib/workspace/active";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
@@ -21,6 +19,7 @@ export async function GET() {
   }
 
   try {
+    const supabase = await createClient();
     const [entitlements, usage] = await Promise.all([
       getEntitlements(supabase, workspaceId),
       getMachineUsage(supabase, workspaceId),

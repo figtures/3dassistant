@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/get-auth-user";
 import { getActiveWorkspaceId } from "@/lib/workspace/active";
 import type { FeedbackKind } from "@/features/feedback/schedule";
 
@@ -24,42 +25,40 @@ function validateScore(kind: FeedbackKind, score: number): string | null {
 }
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
 
   const kind = request.nextUrl.searchParams.get("kind");
   if (kind === "nps") {
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("created_at")
-      .eq("id", user.id)
-      .maybeSingle();
+    const supabase = await createClient();
+    const [profileResult, lastResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("created_at")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("feedback_responses")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .eq("kind", "nps")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-    if (profileError) {
-      return NextResponse.json({ error: profileError.message }, { status: 500 });
+    if (profileResult.error) {
+      return NextResponse.json({ error: profileResult.error.message }, { status: 500 });
     }
-
-    const { data: lastRow, error: lastError } = await supabase
-      .from("feedback_responses")
-      .select("created_at")
-      .eq("user_id", user.id)
-      .eq("kind", "nps")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (lastError) {
-      return NextResponse.json({ error: lastError.message }, { status: 500 });
+    if (lastResult.error) {
+      return NextResponse.json({ error: lastResult.error.message }, { status: 500 });
     }
 
     return NextResponse.json({
-      userCreatedAt: profile?.created_at ?? user.created_at,
-      lastNpsSubmittedAt: lastRow?.created_at ?? null,
+      userCreatedAt: profileResult.data?.created_at ?? user.created_at,
+      lastNpsSubmittedAt: lastResult.data?.created_at ?? null,
     });
   }
 
@@ -69,6 +68,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "ticketId gerekli" }, { status: 400 });
     }
 
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from("feedback_responses")
       .select("id")
@@ -89,13 +89,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
   }
+
+  const supabase = await createClient();
 
   let json: unknown;
   try {

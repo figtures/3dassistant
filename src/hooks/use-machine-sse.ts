@@ -46,23 +46,64 @@ export function useMachineLiveSse(machineId: string | undefined) {
   return { live, sseConnected: connected };
 }
 
+type FleetListener = (machines: LiveMachine[]) => void;
+
+/** Tek EventSource — dashboard/sidebar'daki çoklu hook çağrıları aynı SSE'yi paylaşır. */
+let fleetEs: EventSource | null = null;
+let fleetSnapshot: LiveMachine[] = [];
+let fleetSubscribers = 0;
+const fleetListeners = new Set<FleetListener>();
+
+function notifyFleetListeners() {
+  for (const listener of fleetListeners) {
+    listener(fleetSnapshot);
+  }
+}
+
+function openFleetEs() {
+  if (fleetEs) return;
+  fleetEs = new EventSource("/api/machines/live");
+  fleetEs.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === "fleet" && Array.isArray(msg.machines)) {
+        fleetSnapshot = msg.machines as LiveMachine[];
+        notifyFleetListeners();
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+  fleetEs.onerror = () => {
+    /* EventSource varsayılan yeniden bağlanmayı kullanır */
+  };
+}
+
+function closeFleetEsIfIdle() {
+  if (fleetSubscribers === 0 && fleetEs) {
+    fleetEs.close();
+    fleetEs = null;
+  }
+}
+
+function subscribeFleet(listener: FleetListener): () => void {
+  fleetSubscribers += 1;
+  fleetListeners.add(listener);
+  openFleetEs();
+  listener(fleetSnapshot);
+  return () => {
+    fleetListeners.delete(listener);
+    fleetSubscribers = Math.max(0, fleetSubscribers - 1);
+    closeFleetEsIfIdle();
+  };
+}
+
 export function useFleetLiveSse(enabled = true) {
-  const [machines, setMachines] = useState<LiveMachine[]>([]);
+  const [machines, setMachines] = useState<LiveMachine[]>(fleetSnapshot);
 
   useEffect(() => {
     if (!enabled) return;
-    const es = new EventSource("/api/machines/live");
-    es.onmessage = (ev) => {
-      try {
-        const msg = JSON.parse(ev.data);
-        if (msg.type === "fleet" && Array.isArray(msg.machines)) {
-          setMachines(msg.machines as LiveMachine[]);
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-    return () => es.close();
+    return subscribeFleet(setMachines);
   }, [enabled]);
 
   return machines;
