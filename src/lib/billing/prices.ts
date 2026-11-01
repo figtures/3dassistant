@@ -15,7 +15,8 @@ const YEARLY_DISPLAY_ENV: Record<PaidPlanKey, string> = {
   farm: "NEXT_PUBLIC_PRICE_FARM_YEARLY_TRY",
 };
 
-export const CONTACT_FOR_PRICE = "Fiyat için iletişime geçin";
+/** Env'de fiyat yokken gösterilir — uydurma tutar kullanılmaz. */
+export const PRICE_UNAVAILABLE_LABEL = "Yakında";
 
 function readTryAmount(envKey: string): number | null {
   const raw = process.env[envKey]?.trim();
@@ -36,7 +37,7 @@ export function displayPriceLabel(plan: PlanKey, interval: BillingInterval): str
   if (plan === "free") return "Ücretsiz";
   const envKey = interval === "year" ? YEARLY_DISPLAY_ENV[plan] : MONTHLY_DISPLAY_ENV[plan];
   const amount = readTryAmount(envKey);
-  if (amount == null) return CONTACT_FOR_PRICE;
+  if (amount == null) return PRICE_UNAVAILABLE_LABEL;
   const formatted = formatTryAmount(amount);
   return interval === "year" ? `${formatted} / yıl` : `${formatted} / ay`;
 }
