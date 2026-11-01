@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   OnboardingStepper,
@@ -12,6 +12,8 @@ import { StepWorkshop } from "@/features/onboarding/step-workshop";
 import { StepPrinters } from "@/features/onboarding/step-printers";
 import { StepMaterials } from "@/features/onboarding/step-materials";
 import { StepFirstOrder } from "@/features/onboarding/step-first-order";
+import { StepPlan } from "@/features/onboarding/step-plan";
+import { track } from "@/lib/analytics";
 import { Skeleton } from "@/components/ds/skeleton";
 
 const WIZARD_STEPS: WizardStep[] = [
@@ -19,10 +21,13 @@ const WIZARD_STEPS: WizardStep[] = [
   { id: "printers", label: "Yazıcılar" },
   { id: "materials", label: "Filament" },
   { id: "first_order", label: "İlk sipariş" },
+  { id: "plan", label: "Plan" },
 ];
 
 export function OnboardingWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const verifiedTracked = useRef(false);
   const { metadata, isLoading, updateMetadata, skipStep } = useOnboarding();
   const [stepIndex, setStepIndex] = useState(0);
   const [companyName, setCompanyName] = useState("");
@@ -63,9 +68,22 @@ export function OnboardingWizard() {
 
   const finish = useCallback(async () => {
     await updateMetadata({ wizardCompletedAt: new Date().toISOString() });
+    track("onboarding_step", { step: "complete" });
     router.push("/dashboard?welcome=1");
     router.refresh();
   }, [router, updateMetadata]);
+
+  useEffect(() => {
+    const step = WIZARD_STEPS[stepIndex]?.id;
+    if (step) track("onboarding_step", { step });
+  }, [stepIndex]);
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "1" && !verifiedTracked.current) {
+      verifiedTracked.current = true;
+      track("email_verified");
+    }
+  }, [searchParams]);
 
   const goNext = useCallback(() => {
     setStepIndex((i) => Math.min(i + 1, WIZARD_STEPS.length - 1));
@@ -122,8 +140,16 @@ export function OnboardingWizard() {
         ) : null}
         {stepIndex === 3 ? (
           <StepFirstOrder
-            onFinish={() => void finish()}
+            onFinish={goNext}
             onSkip={() => void skipWizardStep("first_order")}
+          />
+        ) : null}
+        {stepIndex === 4 ? (
+          <StepPlan
+            metadata={metadata}
+            updateMetadata={updateMetadata}
+            onFinish={() => void finish()}
+            onSkip={() => void skipWizardStep("choose_plan")}
           />
         ) : null}
       </div>

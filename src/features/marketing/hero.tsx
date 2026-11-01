@@ -4,6 +4,7 @@ import { ArrowRight, PlayCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ds/variants";
 import { TRIAL_REGISTER_HREF } from "@/features/marketing/constants";
+import { MarketingCtaLink } from "@/features/marketing/marketing-cta-link";
 
 export function MarketingHero() {
   return (
@@ -25,7 +26,8 @@ export function MarketingHero() {
             tahsilat — Türkçe, atölyeler için.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
+            <MarketingCtaLink
+              cta="hero_trial"
               href={TRIAL_REGISTER_HREF}
               className={cn(
                 buttonVariants({ variant: "primary", size: "lg" }),
@@ -34,7 +36,7 @@ export function MarketingHero() {
             >
               14 gün ücretsiz dene
               <ArrowRight className="size-4" aria-hidden />
-            </Link>
+            </MarketingCtaLink>
             <Link
               href="#urun-onizleme"
               className={cn(

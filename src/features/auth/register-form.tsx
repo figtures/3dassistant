@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/site-url";
@@ -13,6 +13,8 @@ import { FormField } from "@/components/ds/form-field";
 import { AuthShell } from "@/features/auth/auth-shell";
 import { PasswordInput } from "@/features/auth/password-input";
 import { cn } from "@/lib/utils";
+import { isPaidPlanKey, PLANS, type PaidPlanKey } from "@/lib/billing/plans";
+import { track } from "@/lib/analytics";
 
 function passwordHints(password: string) {
   return [
@@ -21,8 +23,21 @@ function passwordHints(password: string) {
   ];
 }
 
+function resolveSignupFromParams(searchParams: URLSearchParams): {
+  plan: PaidPlanKey | null;
+  trial: boolean;
+} {
+  const trial = searchParams.get("trial") === "1";
+  const rawPlan = searchParams.get("plan");
+  const plan = isPaidPlanKey(rawPlan) ? rawPlan : trial ? "pro" : null;
+  return { plan, trial };
+}
+
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const signupParams = useMemo(() => resolveSignupFromParams(searchParams), [searchParams]);
+
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,6 +47,15 @@ export function RegisterForm() {
   const [formError, setFormError] = useState<string | undefined>();
 
   const hints = useMemo(() => passwordHints(password), [password]);
+  const trialPlanName =
+    signupParams.plan != null ? PLANS[signupParams.plan].name : null;
+
+  useEffect(() => {
+    track("register_start", {
+      trial: signupParams.trial,
+      plan: signupParams.plan ?? "none",
+    });
+  }, [signupParams.plan, signupParams.trial]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -45,11 +69,22 @@ export function RegisterForm() {
     setLoading(true);
 
     const supabase = createClient();
+    const metadata: Record<string, unknown> = {
+      full_name: fullName,
+      company_name: companyName,
+    };
+    if (signupParams.trial || signupParams.plan) {
+      metadata.signup = {
+        ...(signupParams.plan ? { plan: signupParams.plan } : {}),
+        trial: signupParams.trial,
+      };
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName, company_name: companyName },
+        data: metadata,
         emailRedirectTo: getAuthCallbackUrl("/dashboard"),
       },
     });
@@ -62,6 +97,11 @@ export function RegisterForm() {
       return;
     }
 
+    track("register_complete", {
+      trial: signupParams.trial,
+      plan: signupParams.plan ?? "none",
+    });
+
     toast.success("Hesap oluşturuldu!", {
       description: "E-posta adresinize doğrulama linki gönderildi.",
     });
@@ -70,7 +110,14 @@ export function RegisterForm() {
   }
 
   return (
-    <AuthShell title="Hesap oluşturun" description="Ücretsiz başlayın, kredi kartı gerekmez">
+    <AuthShell
+      title="Hesap oluşturun"
+      description={
+        signupParams.trial && trialPlanName
+          ? `${trialPlanName} planında 14 gün ücretsiz deneyin — kredi kartı gerekmez`
+          : "Ücretsiz başlayın, kredi kartı gerekmez"
+      }
+    >
       <form onSubmit={handleRegister} className="space-y-5" noValidate>
         <FormField label="Ad Soyad" required>
           {(field) => (

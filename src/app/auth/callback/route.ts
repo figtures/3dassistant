@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
+import { ensureAppTrial } from "@/lib/billing/trial";
 
 async function shouldRedirectNewUserToOnboarding(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -40,15 +42,20 @@ export async function GET(request: Request) {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (
-        user &&
-        (await shouldRedirectNewUserToOnboarding(
-          supabase,
-          user.id,
-          user.user_metadata as Record<string, unknown> | undefined
-        ))
-      ) {
-        return NextResponse.redirect(`${origin}/onboarding`);
+      if (user) {
+        const userMetadata = user.user_metadata as Record<string, unknown> | undefined;
+        const admin = tryCreateAdminClient();
+        if (admin) {
+          try {
+            await ensureAppTrial(admin, user.id, userMetadata);
+          } catch (e) {
+            console.error("[auth/callback] trial start failed", e);
+          }
+        }
+
+        if (await shouldRedirectNewUserToOnboarding(supabase, user.id, userMetadata)) {
+          return NextResponse.redirect(`${origin}/onboarding?verified=1`);
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`);

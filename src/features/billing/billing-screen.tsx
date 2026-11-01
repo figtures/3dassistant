@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge, Button, Card, CardContent, Skeleton } from "@/components/ds";
+import { buttonVariants } from "@/components/ds/variants";
 import { PlanCards, type PlanCardRow } from "@/components/v2/billing/plan-cards";
 import { useSupportReport } from "@/components/support/report-problem-modal";
 import { HelpTitleRow } from "@/components/v2/help/contextual-help";
@@ -38,6 +39,8 @@ import {
   type BillingInterval,
 } from "@/lib/billing/prices";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
+import { useRouter } from "next/navigation";
 
 const STATUS_LABEL: Record<string, string> = {
   trialing: "Deneme",
@@ -95,6 +98,7 @@ function BillingV2Skeleton() {
 }
 
 function BillingV2Content() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const confirmAction = useConfirm();
@@ -149,13 +153,15 @@ function BillingV2Content() {
   useEffect(() => {
     mountedRef.current = true;
     setPaddleCheckoutCompletedHandler(() => {
+      track("checkout_complete", { plan: pendingPlanRef.current ?? "unknown" });
+      router.replace("/settings/billing?checkout=success");
       if (pendingPlanRef.current) void waitForPlan(pendingPlanRef.current);
     });
     return () => {
       mountedRef.current = false;
       setPaddleCheckoutCompletedHandler(null);
     };
-  }, [waitForPlan]);
+  }, [router, waitForPlan]);
 
   const planCards: PlanCardRow[] = useMemo(() => {
     const purchasableByKey = new Map<PaidPlanKey, boolean>();
@@ -213,6 +219,7 @@ function BillingV2Content() {
         throw new Error("Ödeme penceresi yüklenemedi, sayfayı yenileyip tekrar deneyin");
       }
       pendingPlanRef.current = plan;
+      track("checkout_open", { plan, source: "billing" });
       openPaddleCheckout(data.transactionId);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Hata");
@@ -241,6 +248,7 @@ function BillingV2Content() {
   const { entitlements, usage, billingAvailable } = ent;
   const sub = entitlements.subscription;
   const reason = searchParams.get("reason");
+  const checkoutSuccess = searchParams.get("checkout") === "success";
   const paddleScript = billingAvailable && isPaddleClientConfigured();
 
   return (
@@ -290,6 +298,33 @@ function BillingV2Content() {
               Ödeme yöntemini güncelle
             </button>
           ) : null}
+        </div>
+      ) : null}
+
+      {checkoutSuccess ? (
+        <div
+          role="status"
+          className="rounded-xl border border-success/40 bg-success/10 px-4 py-4 text-sm text-foreground"
+        >
+          <p className="font-medium">Ödemeniz alındı</p>
+          <p className="mt-1 text-muted-foreground">
+            Planınız birkaç dakika içinde güncellenir. Sırada yazıcı bağlamak veya ilk siparişinizi
+            oluşturmak var.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href="/machines/connect"
+              className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}
+            >
+              Yazıcı bağla
+            </Link>
+            <Link
+              href="/orders?order=new"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+            >
+              İlk sipariş
+            </Link>
+          </div>
         </div>
       ) : null}
 

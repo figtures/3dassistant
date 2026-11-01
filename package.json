@@ -14,7 +14,7 @@
     "test:reminders": "npx tsx --test src/lib/overdue-reminders.test.ts src/lib/notifications/*.test.ts",
     "test:mesh-metrics": "npx tsx --test src/lib/mesh-metrics.test.ts",
     "test:integration-crypto": "npx tsx --test src/lib/integration-crypto.test.ts",
-    "test:billing": "npx tsx --test src/lib/billing/webhook.test.ts",
+    "test:billing": "npx tsx --test src/lib/billing/webhook.test.ts src/lib/billing/plans.test.ts src/lib/billing/trial.test.ts",
     "test:billing-features": "npx tsx --test src/lib/billing/features.test.ts",
     "test:prusa-cloud": "npx tsx --test src/lib/printer-cloud/prusa-client.test.ts",
     "test:bambu-cloud": "npx tsx --test src/lib/printer-cloud/bambu-client.test.ts",

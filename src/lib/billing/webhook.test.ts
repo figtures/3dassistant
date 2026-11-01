@@ -43,7 +43,8 @@ describe("verifyPaddleSignature", () => {
 });
 
 describe("normalizeSubscription", () => {
-  const planFor = (id: string | null) => (id === "pri_pro" ? "pro" : null);
+  const planFor = (id: string | null) =>
+    id === "pri_pro" || id === "pri_pro_yearly" ? "pro" : null;
   const base = {
     id: "sub_1",
     status: "active",
@@ -64,6 +65,16 @@ describe("normalizeSubscription", () => {
     assert.equal(r.value.cloud_monitoring, true);
     assert.equal(r.value.cancel_at, "2026-11-17T00:00:00Z");
     assert.equal(r.value.custom_user_id, base.custom_data.user_id);
+  });
+
+  it("yıllık fiyat kimliği ile plan eşler", () => {
+    const r = normalizeSubscription(
+      { ...base, items: [{ price: { id: "pri_pro_yearly" } }] },
+      planFor
+    );
+    assert.ok(r.ok);
+    if (!r.ok) return;
+    assert.equal(r.value.plan_key, "pro");
   });
 
   it("rejects unknown prices and statuses, ignores non-uuid user ids", () => {

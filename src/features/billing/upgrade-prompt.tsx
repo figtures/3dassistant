@@ -85,6 +85,10 @@ export function UpgradePromptHost() {
   useEffect(() => {
     mountedRef.current = true;
     setPaddleCheckoutCompletedHandler(() => {
+      track("checkout_complete", { plan: pendingPlanRef.current ?? "unknown", source: "upgrade" });
+      if (typeof window !== "undefined") {
+        window.location.assign("/settings/billing?checkout=success");
+      }
       if (pendingPlanRef.current) {
         void waitForPlan(pendingPlanRef.current);
       }
@@ -149,6 +153,7 @@ export function UpgradePromptHost() {
         throw new Error("Ödeme penceresi yüklenemedi, sayfayı yenileyip tekrar deneyin");
       }
       pendingPlanRef.current = targetPlan;
+      track("checkout_open", { plan: targetPlan, source: "upgrade" });
       openPaddleCheckout(data.transactionId);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Hata");

@@ -99,5 +99,9 @@ export function priceIdForPlan(
 
 export function planKeyForPriceId(priceId: string | null | undefined): PaidPlanKey | null {
   if (!priceId) return null;
-  return PAID_PLAN_KEYS.find((key) => priceIdForPlan(key) === priceId) ?? null;
+  for (const key of PAID_PLAN_KEYS) {
+    if (priceIdForPlan(key, "month") === priceId) return key;
+    if (priceIdForPlan(key, "year") === priceId) return key;
+  }
+  return null;
 }

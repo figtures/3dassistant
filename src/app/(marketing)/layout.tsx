@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MarketingAnalytics } from "@/features/marketing/marketing-analytics";
 
 const footerLinkClass =
   "text-muted-foreground transition-colors hover:text-foreground";
@@ -10,6 +11,7 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-base text-foreground">
+      <MarketingAnalytics />
       <header className="sticky top-0 z-[var(--z-sticky,20)] border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <Link

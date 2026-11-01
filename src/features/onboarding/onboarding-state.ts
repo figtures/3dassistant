@@ -78,7 +78,7 @@ const STEP_HREFS: Record<OnboardingStepId, string> = {
   add_material: "/materials",
   first_order: "/orders?order=new",
   add_customer: "/customers?new=1",
-  choose_plan: "/billing",
+  choose_plan: "/settings/billing",
   invite_team: "/settings/team",
 };
 
