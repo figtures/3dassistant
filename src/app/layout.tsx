@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { Providers } from "@/components/providers";
 import { getUiVersion } from "@/lib/flags/ui-version";
 import { parseUiDensity } from "@/lib/shell/density-cookie";
+import { getSiteBaseUrl } from "@/lib/site-base-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,17 +19,31 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://3dasisstant.com";
+const siteUrl = getSiteBaseUrl();
+const defaultTitle = "3D Asisstant — 3D atölye ERP";
+const defaultDescription =
+  "3D baskı atölyeleri için üretim, planlama ve filo yönetimi";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "3D Asisstant — 3D atölye ERP",
+    default: defaultTitle,
     template: "%s · 3D Asisstant",
   },
-  description: "3D baskı atölyeleri için üretim, planlama ve filo yönetimi",
+  description: defaultDescription,
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    url: siteUrl,
+    siteName: "3D Asisstant",
+    title: defaultTitle,
+    description: defaultDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: defaultDescription,
+  },
 };
 
 export default async function RootLayout({

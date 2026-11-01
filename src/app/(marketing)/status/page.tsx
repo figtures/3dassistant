@@ -28,10 +28,12 @@ export default async function StatusPage() {
   const overall = overallPageStatus(services);
 
   return (
-    <StatusPageScreen
-      overall={overall}
-      services={services}
-      incidents={STATUS_INCIDENTS}
-    />
+    <div className="mx-auto max-w-6xl px-4 py-10">
+      <StatusPageScreen
+        overall={overall}
+        services={services}
+        incidents={STATUS_INCIDENTS}
+      />
+    </div>
   );
 }
